@@ -1,0 +1,16 @@
+<resources>
+    <!-- extend the base theme to add styles available only with API level 21+ -->
+    <style name="AppTheme" parent="BaseAppTheme">
+        <item name="android:windowActivityTransitions">true</item>
+        <item name="android:windowEnterTransition">@android:transition/slide_right</item>
+        <item name="android:windowExitTransition">@android:transition/slide_left</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+    </style>
+
+    <style name="NavDrawerTextStyle" parent="Base.TextAppearance.AppCompat">
+        <item name="android:textColor">@android:color/black</item>
+        <item name="android:textSize">17sp</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:paddingLeft">10dp</item>
+    </style>
+</resources>

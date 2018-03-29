@@ -1,0 +1,18 @@
+<resources>
+    <!-- base set of styles that apply to all versions -->
+    <style name="BaseAppTheme" parent="Theme.AppCompat.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+    <!-- declare the theme name that's actually applied in the manifest file -->
+    <style name="AppTheme" parent="BaseAppTheme" />
+
+    <style name="NavDrawerTextStyle" parent="Base.TextAppearance.AppCompat">
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textSize">17sp</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:paddingLeft">10dp</item>
+    </style>
+</resources>

@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">Thanet Earth</string>
+    <string name="gmaps_api_key" translatable="false">AIzaSyAR5bLhpyf_P8KHYs4OA2BlEIROyhWhQAA</string>
+    <string name="title_activity_main2">Main2Activity</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="action_settings">Settings</string>
+    <string name="load_app">Continue</string>
+    <string name="toolbar_title_map">Site Locations</string>
+    <string name="toolbar_title_dashboard">Dashboard</string>
+    <string name="weather_temp_title">Feeling like</string>
+    <string name="weather_temp">° C</string>
+    <string name="weather_humidity_title">Humidity</string>
+    <string name="weather_humidity">0</string>
+    <string name="weather_condition">Loading Condition</string>
+    <string name="weather_pressure_title">Pressure</string>
+    <string name="weather_pressure">0</string>
+    <string name="greenhouse1_title">Greenhouse 1: Tomatoes</string>
+    <string name="sensor">Sensor</string>
+    <string name="temp">Temperature</string>
+
+</resources>
