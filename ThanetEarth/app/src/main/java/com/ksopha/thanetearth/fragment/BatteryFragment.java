@@ -182,7 +182,7 @@ public class BatteryFragment extends Fragment {
 
         // add data to the chart and refresh
         BarData barData = new BarData(set);
-        barData.setBarWidth(0.25f);
+        barData.setBarWidth(0.22f);
         charts[index].setData(barData);
         charts[index].invalidate();
     }
