@@ -1,7 +1,6 @@
-package com.ksopha.thanetearth.ob;
+package com.ksopha.thanetearth.ormObject;
 
 import com.orm.SugarRecord;
-import com.orm.dsl.Unique;
 
 /**
  * Created by Kelvin Sopha on 29/03/18.

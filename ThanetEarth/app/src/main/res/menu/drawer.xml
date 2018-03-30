@@ -17,7 +17,12 @@
 
     <item
         android:id="@+id/out"
-        android:title="Outside Field" />
+        android:title="Outdoor Monitoring Station" />
+
+    <item
+        android:id="@+id/power"
+        android:title="Sensor Power" />
+
 
     <item
         android:id="@+id/sites"

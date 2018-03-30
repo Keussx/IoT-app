@@ -1,4 +1,4 @@
-package com.ksopha.thanetearth.ob;
+package com.ksopha.thanetearth.ormObject;
 
 import com.orm.SugarRecord;
 

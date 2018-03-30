@@ -15,6 +15,7 @@ import com.ksopha.thanetearth.location.SitesLocator;
 import java.util.List;
 
 /**
+ * Class for fragment with map
  * Created by Kelvin Sopha on 22/03/18.
  */
 
@@ -28,6 +29,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private boolean doingLocationUpdates;
     private boolean toMoveCamAgain;
 
+
+    /**
+     * called at creation of fragment
+     */
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,6 +41,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     }
 
 
+    /**
+     * called to instantiate fragment ui
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -87,6 +95,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
 
 
+    /**
+     * called when map ui ready
+     */
     @Override
     public void onMapReady(GoogleMap map) {
 
@@ -125,6 +136,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
 
 
+    /**
+     * called when fragment id made visible to user
+     */
     @Override
     public void onResume() {
 
@@ -141,7 +155,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     }
 
 
-
+    /**
+     * called when fragment goes off screen
+     */
     @Override
     public void onPause() {
         //invoke onPause of mapView
@@ -157,6 +173,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     }
 
 
+
+    /**
+     * called when fragment needs to save states
+     */
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
@@ -184,6 +204,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     }
 
 
+
+    /**
+     * called before fragment is destroyed
+     */
     @Override
     public void onDestroy() {
         if (mapView != null) {

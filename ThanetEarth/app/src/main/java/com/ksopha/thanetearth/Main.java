@@ -7,6 +7,7 @@ import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
+import android.os.Handler;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -26,6 +27,8 @@ import android.view.WindowManager;
 import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
+import com.ksopha.thanetearth.fragment.BasicSiteFragment;
+import com.ksopha.thanetearth.fragment.BatteryFragment;
 import com.ksopha.thanetearth.fragment.MapFragment;
 import com.ksopha.thanetearth.fragment.GreenhouseFragment;
 import com.ksopha.thanetearth.fragment.StartupFragment;
@@ -36,6 +39,10 @@ public class Main extends AppCompatActivity implements NavigationView.OnNavigati
     private final static String STARTUP_FRAG_TAG = "start_frag";
     private final static String MAPVIEW_FRAG_TAG = "map_frag";
     private final static String GRN_HOUSE1_TAG = "grn1_frag";
+    private final static String GRN_HOUSE2_TAG = "grn2_frag";
+    private final static String GRN_HOUSE3_TAG = "grn3_frag";
+    private final static String OUT_FRAG = "outside_frag";
+    private final static String BATT_FRAG = "power_frag";
     private final static int REQ_INTERVAL = 1000 * 60 ; // 1 minute in milliseconds
     private final static int ERROR_REQUEST_CODE = 8000; // random codes just to identify this activity
     private DrawerLayout navDrawer;
@@ -43,15 +50,21 @@ public class Main extends AppCompatActivity implements NavigationView.OnNavigati
     private FragmentManager fragManager;
     private StartupFragment startupFragment;
     private MapFragment mapViewFragment;
-    private GreenhouseFragment greenhouse1Fragment;
+    private GreenhouseFragment greenhouse1, greenhouse2, greenhouse3;
+    private BasicSiteFragment outside;
+    private BatteryFragment batteryFragment;
     private Intent backgroundServiceIntent;
     private IntentFilter intentFilter;
+    private Runnable drawerClosedRun;
+    private Handler navDrawerHandler;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        navDrawerHandler = new Handler();
 
         // set toolbar as action bar
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -74,6 +87,7 @@ public class Main extends AppCompatActivity implements NavigationView.OnNavigati
         // when Main Activity starts for first time, show startup fragment
         if(savedInstanceState == null || !savedInstanceState.containsKey("currentFrag")){
             switchFragment(GRN_HOUSE1_TAG);
+            changeToolBarTitle(GRN_HOUSE1_TAG);
         }
         else{
             // otherwise bundle contain states, so restore the states
@@ -82,9 +96,24 @@ public class Main extends AppCompatActivity implements NavigationView.OnNavigati
 
         // set drawer listener
         navDrawer = (DrawerLayout) findViewById(R.id.nav_drawer);
+
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, navDrawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+                this, navDrawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close){
+
+            @Override
+            public void onDrawerClosed(View view) {
+                invalidateOptionsMenu();
+
+                // If mPendingRunnable is not null, then add to the message queue
+                if (drawerClosedRun != null) {
+                    navDrawerHandler.post(drawerClosedRun);
+                    drawerClosedRun = null;
+                }
+            }
+        };
+
         navDrawer.addDrawerListener(toggle);
+
         toggle.syncState();
 
         // set navigation item selection listener
@@ -107,7 +136,11 @@ public class Main extends AppCompatActivity implements NavigationView.OnNavigati
         // find fragments
         startupFragment = (StartupFragment) fragManager.findFragmentByTag(STARTUP_FRAG_TAG);
         mapViewFragment = (MapFragment) fragManager.findFragmentByTag(MAPVIEW_FRAG_TAG);
-        greenhouse1Fragment = (GreenhouseFragment) fragManager.findFragmentByTag(GRN_HOUSE1_TAG);
+        greenhouse1 = (GreenhouseFragment) fragManager.findFragmentByTag(GRN_HOUSE1_TAG);
+        greenhouse2 = (GreenhouseFragment) fragManager.findFragmentByTag(GRN_HOUSE2_TAG);
+        greenhouse3 = (GreenhouseFragment) fragManager.findFragmentByTag(GRN_HOUSE3_TAG);
+        outside = (BasicSiteFragment) fragManager.findFragmentByTag(OUT_FRAG);
+        batteryFragment = (BatteryFragment) fragManager.findFragmentByTag(BATT_FRAG);
 
         // instantiate is null
         if(startupFragment == null){
@@ -116,8 +149,20 @@ public class Main extends AppCompatActivity implements NavigationView.OnNavigati
         if(mapViewFragment == null){
             mapViewFragment = new MapFragment();
         }
-        if(greenhouse1Fragment == null){
-            greenhouse1Fragment = new GreenhouseFragment();
+        if(greenhouse1 == null){
+            greenhouse1 = GreenhouseFragment.newInstance("gh1");
+        }
+        if(greenhouse2 == null){
+            greenhouse2 = GreenhouseFragment.newInstance("gh2");
+        }
+        if(greenhouse3 == null){
+            greenhouse3 = GreenhouseFragment.newInstance("gh3");
+        }
+        if(outside == null){
+            outside = BasicSiteFragment.newInstance("outside");
+        }
+        if(batteryFragment == null){
+            batteryFragment = new BatteryFragment();
         }
     }
 
@@ -132,25 +177,59 @@ public class Main extends AppCompatActivity implements NavigationView.OnNavigati
         FragmentTransaction fragmentTransaction = fragManager.beginTransaction();
 
         switch (fragmentTag){
+
             case STARTUP_FRAG_TAG:
                 fragmentTransaction.replace(R.id.fragment_holder, startupFragment, STARTUP_FRAG_TAG);
                 currentFragment = STARTUP_FRAG_TAG;
                 break;
+
             case GRN_HOUSE1_TAG:
-                fragmentTransaction.replace(R.id.fragment_holder, greenhouse1Fragment, GRN_HOUSE1_TAG);
+                fragmentTransaction.replace(R.id.fragment_holder, greenhouse1, GRN_HOUSE1_TAG);
                 currentFragment = GRN_HOUSE1_TAG;
-                getSupportActionBar().setSubtitle("Greenhouse 1");
                 break;
+
+            case GRN_HOUSE2_TAG:
+                fragmentTransaction.replace(R.id.fragment_holder, greenhouse2, GRN_HOUSE2_TAG);
+                currentFragment = GRN_HOUSE2_TAG;
+                break;
+
+            case GRN_HOUSE3_TAG:
+                fragmentTransaction.replace(R.id.fragment_holder, greenhouse3, GRN_HOUSE3_TAG);
+                currentFragment = GRN_HOUSE3_TAG;
+                break;
+
+            case OUT_FRAG:
+                fragmentTransaction.replace(R.id.fragment_holder, outside, OUT_FRAG);
+                currentFragment = OUT_FRAG;
+                break;
+
+            case BATT_FRAG:
+                fragmentTransaction.replace(R.id.fragment_holder, batteryFragment, BATT_FRAG);
+                currentFragment = BATT_FRAG;
+                break;
+
             case MAPVIEW_FRAG_TAG:
                 fragmentTransaction.replace(R.id.fragment_holder, mapViewFragment, MAPVIEW_FRAG_TAG);
                 currentFragment = MAPVIEW_FRAG_TAG;
-                getSupportActionBar().setSubtitle(R.string.toolbar_title_map);
 
         }
 
         fragmentTransaction.commit();
     }
 
+
+
+    private void changeToolBarTitle(String TAG){
+        String title = (GRN_HOUSE1_TAG.equals(TAG)) ?
+                "Greenhouse 1" : (GRN_HOUSE2_TAG.equals(TAG)) ?
+                "Greenhouse 2" : (GRN_HOUSE3_TAG.equals(TAG)) ?
+                "Greenhouse 3" : (OUT_FRAG.equals(TAG)) ?
+                "Outdoor Monitoring Station" : (BATT_FRAG.equals(TAG)) ?
+                "Sensor Power" : (MAPVIEW_FRAG_TAG.equals(TAG)) ?
+                "Site Locations" : "";
+
+        getSupportActionBar().setSubtitle(title);
+    }
 
 
     /**
@@ -255,21 +334,29 @@ public class Main extends AppCompatActivity implements NavigationView.OnNavigati
     }
 
 
-
-
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
-        // Handle navigation view item clicks here.
+
         int id = item.getItemId();
 
-        if (id == R.id.grn1 && !currentFragment.equals(GRN_HOUSE1_TAG)) {
-            switchFragment(GRN_HOUSE1_TAG);
-        } else if (id == R.id.sites && !currentFragment.equals(MAPVIEW_FRAG_TAG)) {
-            switchFragment(MAPVIEW_FRAG_TAG);
-        }
+        final String tag =  (id == R.id.grn1 && !currentFragment.equals(GRN_HOUSE1_TAG)) ?
+            GRN_HOUSE1_TAG : (id == R.id.grn2 && !currentFragment.equals(GRN_HOUSE2_TAG)) ?
+            GRN_HOUSE2_TAG : (id == R.id.grn3 && !currentFragment.equals(GRN_HOUSE3_TAG)) ?
+            GRN_HOUSE3_TAG : (id == R.id.out && !currentFragment.equals(OUT_FRAG)) ?
+            OUT_FRAG : (id == R.id.power && !currentFragment.equals(BATT_FRAG)) ?
+            BATT_FRAG : (id == R.id.sites && !currentFragment.equals(MAPVIEW_FRAG_TAG)) ?
+            MAPVIEW_FRAG_TAG : "";
 
+        drawerClosedRun = new Runnable() {
+            @Override
+            public void run() {
+                switchFragment(tag);
+            }
+        };
+
+
+        changeToolBarTitle(tag);
         item.setChecked(true);
-
         navDrawer.closeDrawer(GravityCompat.START);
         return true;
     }
@@ -318,22 +405,48 @@ public class Main extends AppCompatActivity implements NavigationView.OnNavigati
             // Greenhouse 1 current data
             if(intent.hasExtra("current")){
 
-                Log.i("Main","Updating: current data");
+                Log.i("Main"," current data");
+
+                int mode = intent.getIntExtra("current", -1);
 
                 // update greenhouse1 data if it is visible
-                if(greenhouse1Fragment.isVisible()){
-                    greenhouse1Fragment.updateCurrentGreenhouseData("gh1");
+                if(mode==0 && greenhouse1.isVisible()){
+                    greenhouse1.updateCurrentGreenhouseData();
+                }
+                else if (mode==1 && greenhouse2.isVisible()) {
+                    greenhouse2.updateCurrentGreenhouseData();
+                }
+                else if (mode==2 && greenhouse3.isVisible()) {
+                    greenhouse3.updateCurrentGreenhouseData();
+                }
+                else if (mode==3 && outside.isVisible()) {
+                    outside.updateCurrentSiteData();
+                }
+                else if(mode==3 && batteryFragment.isVisible()){
+                    batteryFragment.updateUiBatteryMeasures();
                 }
 
             }
 
-            else if(intent.hasExtra("temp_history")){
+            else if(intent.hasExtra("history")){
 
                 Log.i("Main","Updating: history data");
 
+                int mode = intent.getIntExtra("history", -1);
+
                 // update greenhouse1 data if it is visible
-                if(greenhouse1Fragment.isVisible()){
-                    greenhouse1Fragment.updateHistoryData("gh1");
+                // update greenhouse1 data if it is visible
+                if(mode==0 && greenhouse1.isVisible()){
+                    greenhouse1.updateHistoryData();
+                }
+                else if (mode==1 && greenhouse2.isVisible()) {
+                    greenhouse2.updateHistoryData();
+                }
+                else if (mode==2 && greenhouse3.isVisible()) {
+                    greenhouse3.updateHistoryData();
+                }
+                else if (mode==3 && outside.isVisible()) {
+                    outside.updateHistoryData();
                 }
 
             }
@@ -341,4 +454,6 @@ public class Main extends AppCompatActivity implements NavigationView.OnNavigati
         }
 
     };
+
+
 }

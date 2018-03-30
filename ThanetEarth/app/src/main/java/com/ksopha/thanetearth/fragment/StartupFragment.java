@@ -9,7 +9,7 @@ import com.ksopha.thanetearth.R;
 
 
 /**
- * StartupFragment screen fragment that is shown when app starts
+ * Unused: StartupFragment screen fragment that is shown when app starts
  * Created by Kelvin Sopha on 23/02/18.
  */
 public class StartupFragment extends Fragment {

@@ -4,9 +4,9 @@ import android.util.Log;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ksopha.thanetearth.date.Formatter;
-import com.ksopha.thanetearth.ob.Sensor;
-import com.ksopha.thanetearth.ob.SensorBasicData;
-import com.ksopha.thanetearth.ob.SensorHistory;
+import com.ksopha.thanetearth.ormObject.Sensor;
+import com.ksopha.thanetearth.ormObject.SensorBasicData;
+import com.ksopha.thanetearth.ormObject.SensorHistory;
 import com.orm.SugarRecord;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -14,6 +14,7 @@ import java.util.List;
 
 
 /**
+ * Class for parsing json sensor data
  * Created by Kelvin Sopha on 25/03/18.
  */
 
@@ -22,12 +23,21 @@ public class SensorJsonDataParser {
     private ObjectMapper mapper;
     private Formatter formatter;
 
+
+    /**
+     * Constructor
+     */
     public SensorJsonDataParser(){
         mapper = new ObjectMapper();
         formatter = new Formatter();
     }
 
 
+    /**
+     * Get list of sensors from json
+     * @param json data
+     * @return  sensor list
+     */
     public List<Sensor> getSensorsFromJson(String json){
 
         if(json != null && json.length()>0) {
@@ -51,7 +61,7 @@ public class SensorJsonDataParser {
 
                     for(JsonNode zone: zones) {
                         String deviceId = site.get("id").asText()+"_"+zone.get("id").asText();
-                        sensors.add(new Sensor(deviceId, siteId));
+                        sensors.add(new Sensor(deviceId, zone.get("id").asText(), siteId));
                     }
                 }
 
@@ -70,8 +80,16 @@ public class SensorJsonDataParser {
     }
 
 
-
-
+    /**
+     * return sensor details using several json data
+     * @param sensor sensor instance
+     * @param tdsJson tds json data
+     * @param lightJson light  json data
+     * @param tempJson temperature  json data
+     * @param moistureJson moisture  json data
+     * @param batteryJson battery  json data
+     * @return basic data instance
+     */
     public SensorBasicData getSensorBasicData(Sensor sensor, String tdsJson, String lightJson,
                                               String tempJson, String moistureJson, String batteryJson){
 
@@ -107,6 +125,13 @@ public class SensorJsonDataParser {
     }
 
 
+    /**
+     * get list of sensor history records from json data
+     * @param sensor sensor instance
+     * @param type type of measurement
+     * @param json json data
+     * @return list of sensor history records
+     */
     public List<SensorHistory> getSensorSensorHistoryListFromJson(Sensor sensor, String type, String json){
 
         List<SensorHistory> records = new ArrayList<>();

@@ -28,7 +28,7 @@
 
         <include
             android:id="@+id/temp_card"
-            layout="@layout/card_greenhouse_temp"
+            layout="@layout/card_site_temp"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
@@ -40,7 +40,7 @@
 
         <include
             android:id="@+id/moisture_card"
-            layout="@layout/card_greenhouse_moisture"
+            layout="@layout/card_site_moisture"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
@@ -52,7 +52,7 @@
 
         <include
             android:id="@+id/tds_card"
-            layout="@layout/card_greenhouse_tds"
+            layout="@layout/card_site_tds"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
@@ -64,7 +64,7 @@
 
         <include
             android:id="@+id/light_card"
-            layout="@layout/card_greenhouse_light"
+            layout="@layout/card_site_light"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"

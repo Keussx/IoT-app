@@ -18,5 +18,8 @@
     <string name="greenhouse1_title">Greenhouse 1: Tomatoes</string>
     <string name="sensor">Sensor</string>
     <string name="temp">Temperature</string>
+    <string name="no_history">No history data</string>
+    <string name="waiting_data">waiting for data</string>
+
 
 </resources>

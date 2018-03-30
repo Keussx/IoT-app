@@ -12,12 +12,12 @@ public class WeatherApiWorker {
     private static final String BASE_URL="http://api.openweathermap.org/data/2.5/weather?q=%s&units=metric&appid=%s";
     private static final String CITY_COUNTRY = "Kent,Uk";
     private HTTPClient httpClient;
-    private WeakReference<GreenhouseFragment> dashboard;
+   // private WeakReference<GreenhouseFragment> dashboard;
     private WeatherJsonParser weatherJsonParser;
 
 
     public WeatherApiWorker(GreenhouseFragment reference){
-        dashboard = new WeakReference<GreenhouseFragment>(reference);
+        //dashboard = new WeakReference<GreenhouseFragment>(reference);
         httpClient = new HTTPClient(5000,5000);
         weatherJsonParser = new WeatherJsonParser();
     }
@@ -51,14 +51,15 @@ public class WeatherApiWorker {
             String response = parent.get().httpClient.getHttpResponseAsString(request);
 
             // parse json to create WeatherInfo object
-            return parent.get().weatherJsonParser.getWeatherInfo(response);
+            //return parent.get().weatherJsonParser.getWeatherInfo(response);
+            return null;
         }
 
         @Override
         protected void onPostExecute(WeatherInfo weatherInfo) {
             // update dashboard using UI thread
-            if(parent.get().dashboard != null)
-                parent.get().dashboard.get().updateWeatherToday(weatherInfo);
+           // if(parent.get().dashboard != null)
+             //   parent.get().dashboard.get().updateWeatherToday(weatherInfo);
         }
     }
 

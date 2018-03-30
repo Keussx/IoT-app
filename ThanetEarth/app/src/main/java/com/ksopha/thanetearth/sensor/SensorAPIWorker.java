@@ -1,13 +1,14 @@
 package com.ksopha.thanetearth.sensor;
 
 import com.ksopha.thanetearth.http.HTTPClient;
-import com.ksopha.thanetearth.ob.Sensor;
-import com.ksopha.thanetearth.ob.SensorBasicData;
-import com.ksopha.thanetearth.ob.SensorHistory;
+import com.ksopha.thanetearth.ormObject.Sensor;
+import com.ksopha.thanetearth.ormObject.SensorBasicData;
+import com.ksopha.thanetearth.ormObject.SensorHistory;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * Class for doing requests to the sensors API
  * Created by Kelvin Sopha on 25/03/18.
  */
 
@@ -18,13 +19,21 @@ public class SensorAPIWorker {
     private SensorJsonDataParser sensorJsonDataParser;
 
 
+    /**
+     * Constuctor
+     */
     public SensorAPIWorker(){
         httpClient = new HTTPClient(5000,5000);
         sensorJsonDataParser = new SensorJsonDataParser();
     }
 
 
-
+    /**
+     * get basic current measures for all sensors from the API
+     * @param siteId site Id to get details for
+     * @param sensors list of sensors to get details for
+     * @return list of sensor data
+     */
     public List<SensorBasicData> getGreenHouseBasicData(String siteId, List<Sensor> sensors){
 
         List<SensorBasicData> data = new ArrayList<>();
@@ -52,6 +61,11 @@ public class SensorAPIWorker {
     }
 
 
+
+    /**
+     * returns a list of sensors from all sites
+     * @return sensor list
+     */
     public List<Sensor> getSaveAndReturnSensors(){
 
         // get device Ids here
@@ -63,7 +77,11 @@ public class SensorAPIWorker {
 
 
 
-
+    /**
+     * get basic current measures for a single sensors from the API
+     * @param sensor sensor to get details for
+     * @return sensor measurement details
+     */
     private SensorBasicData getSensorBasicData(Sensor sensor){
 
         String deviceID = sensor.getSensorID();
@@ -90,6 +108,14 @@ public class SensorAPIWorker {
     }
 
 
+    /**
+     * Get history data for a list of sensors, restrcited by site id and measurement type
+     * @param url_extra url to get history data
+     * @param type type of measurement
+     * @param siteId id i=of site
+     * @param sensors list of sensors to get history data
+     * @return sensor data
+     */
     public List<SensorHistory>  getGreenhouseHistoryData(String url_extra, String type, String siteId, List<Sensor> sensors){
 
         // will hold temp sensor history for each sensor

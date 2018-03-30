@@ -1,6 +1,5 @@
 package com.ksopha.thanetearth.service;
 
-import android.app.Activity;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Handler;
@@ -10,32 +9,47 @@ import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
-import com.ksopha.thanetearth.ob.Sensor;
-import com.ksopha.thanetearth.ob.SensorBasicData;
+import com.ksopha.thanetearth.ormObject.Sensor;
+import com.ksopha.thanetearth.ormObject.SensorBasicData;
 import com.ksopha.thanetearth.sensor.SensorAPIWorker;
-import com.ksopha.thanetearth.ob.SensorHistory;
+import com.ksopha.thanetearth.ormObject.SensorHistory;
+import com.orm.SugarRecord;
 import java.lang.ref.WeakReference;
 import java.util.List;
 
 
 /**
+ * Service to run http requests and save responses to database using SugarORM
  * Created by Kelvin Sopha on 25/03/18.
  */
 
 public class BackgroundWorker extends Service {
 
+    private static final int BASIC_UPDATE_SECONDDS_INTERVAL = 60 * 10; // 10 minutes
+    private static final int HISTORY_UPDATE_SECONDDS_INTERVAL = 60 * 60; // 1 hour
+    private long startTime;
     public static final String ACTION = "com.ksopha.thanetearth.service.BackgroundWorker";
     private SensorAPIWorker sensorAPIWorker;
     private List<Sensor> sensors;
     private ServiceHandler serviceHandler;
     private LooperThread thread;
     private boolean pulledHistory;
-    private static final int SECONDDS_INTERVAL = 20; //debug
+    private String [] types = {"temperature", "moisture", "tds", "light"};
+    private String[] sites = {"gh1", "gh2", "gh3", "outside"};
+    public static boolean updatedSiteHistory[]= new boolean[4];
 
 
+
+    /**
+     * called at creation of Service
+     */
     @Override
     public void onCreate() {
         super.onCreate();
+
+        // save time for timer
+        startTime = System.currentTimeMillis();
+
         sensorAPIWorker = new SensorAPIWorker();
 
         serviceHandler = new ServiceHandler();
@@ -45,6 +59,10 @@ public class BackgroundWorker extends Service {
     }
 
 
+
+    /**
+     * called when service starts
+     */
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
@@ -59,14 +77,10 @@ public class BackgroundWorker extends Service {
 
     }
 
-    private Intent getIntent(){
-        // create Intent
-        Intent intent = new Intent(ACTION);
-        intent.putExtra("resultCode", Activity.RESULT_OK);
-        return  intent;
-    }
 
-
+    /**
+     * tell service get site zones as sensors
+     */
     private void getSiteIdZones(){
         if(sensors==null || sensors.isEmpty()) {
             // clear since data might change on server
@@ -75,43 +89,66 @@ public class BackgroundWorker extends Service {
         }
     }
 
-    private void saveBasicSiteData(){
 
-        List<SensorBasicData> siteData = sensorAPIWorker.getGreenHouseBasicData("gh1", sensors);
+    /**
+     * save current measurement data for a site in db
+     * @param site site too get measurements for
+     * @return if success
+     */
+    private boolean saveBasicSiteData(String site){
 
-        //empty old vals
-        SensorBasicData.deleteAll(SensorBasicData.class);
-        // save to database
-        for(SensorBasicData s:siteData)
-            s.store();
+        final List<SensorBasicData> siteData = sensorAPIWorker.getGreenHouseBasicData(site, sensors);
 
-    }
+        if(siteData==null || siteData.isEmpty())
+            return false;
 
-
-
-    private void saveGreenhouseTempHistory(){
-
-        List<SensorHistory> siteData = sensorAPIWorker.getGreenhouseHistoryData("/temperature/hour", "temperature", "gh1" , sensors);
-
-        if(siteData==null || siteData.size()==0){
-            pulledHistory= false;
-            return;
+        for(Sensor sensor:sensors){
+            if(sensor.getSite()==site)
+            SensorBasicData.executeQuery("DELETE FROM SENSOR_BASIC_DATA WHERE Sensor="+sensor.getId()+"");
         }
 
-        //empty old values
-        SensorHistory.deleteAll(SensorHistory.class);
-        // save to database
-        for(SensorHistory s:siteData)
-            s.store();
+        // save records to database
+        SugarRecord.saveInTx(siteData);
 
+        return true;
     }
 
 
+    /**
+     * saves the history of a greenhouse
+     * @param site id of greenhouse
+     * @return if success
+     */
+    private boolean saveGreenhouseHistory(String site){
+
+        for(String type: types){
+
+            List<SensorHistory> siteData = sensorAPIWorker.getGreenhouseHistoryData(
+                    "/"+type+"/hour", type, site , sensors);
+
+            if(siteData==null){
+                pulledHistory= false;
+                return false;
+            }
+
+            // save to database
+            for(SensorHistory s:siteData)
+                s.store();
+
+        }
+        return  true;
+    }
+
+
+    /**
+     * called before service is destroyed
+     */
     @Override
     public void onDestroy() {
         super.onDestroy();
         Log.i("R",  "service done");
     }
+
 
     @Nullable
     @Override
@@ -120,7 +157,9 @@ public class BackgroundWorker extends Service {
     }
 
 
-
+    /**
+     * Class for a single thread that will execute tasks in background on service
+     */
     class LooperThread extends Thread {
 
         private WeakReference<BackgroundWorker> mService;
@@ -136,28 +175,56 @@ public class BackgroundWorker extends Service {
             isRunning = true;
             Looper.prepare();
 
-            Log.i("EE","thread running");
-
             while(isRunning){
 
                 getSiteIdZones();
 
-                saveBasicSiteData();
-                Message msg1 = new Message();
-                msg1.arg1=1;
-                handler.sendMessage(msg1);
+                SensorBasicData.deleteAll(SensorBasicData.class);
+                for(int i=0;i< sites.length; i++){
+
+                    if(saveBasicSiteData(sites[i])){
+
+                        Message msg1 = new Message();
+                        msg1.arg1=i;
+                        handler.sendMessage(msg1);
+                    }
+                }
+
+                // if the startTime is larger in seconds than interval to get history data
+                if((System.currentTimeMillis()-startTime)/1000 >= HISTORY_UPDATE_SECONDDS_INTERVAL){
+                    // we set to false so we can send a request
+                    pulledHistory = false;
+                    //
+                }
+
 
                 if(!pulledHistory) {
+
+                    updatedSiteHistory[0]=updatedSiteHistory[1]=updatedSiteHistory[2]=updatedSiteHistory[3]=false;
+
+                    SensorHistory.deleteAll(SensorHistory.class);
                     pulledHistory=true;
-                    saveGreenhouseTempHistory();
-                    Message msg2 = new Message();
-                    msg2.arg1=2;
-                    handler.sendMessage(msg2);
+
+                    for(int i=0;i< sites.length; i++){
+
+                        if(saveGreenhouseHistory(sites[i])){
+
+                            updatedSiteHistory[i] = true;
+
+                            Message msg2 = new Message();
+                            msg2.arg1=10+i;
+                            handler.sendMessage(msg2);
+
+                        }
+                    }
+
+                    // reset the start time for timer
+                    startTime = System.currentTimeMillis();
                 }
 
 
                 try {
-                    Thread.sleep(1000 * SECONDDS_INTERVAL);
+                    Thread.sleep(1000 * BASIC_UPDATE_SECONDDS_INTERVAL);
                 }catch(Exception e){}
             }
 
@@ -167,7 +234,9 @@ public class BackgroundWorker extends Service {
     }
 
 
-
+    /**
+     * Handler to handle messages send by the thread to the service
+     */
     class ServiceHandler extends Handler {
 
         @Override
@@ -180,21 +249,21 @@ public class BackgroundWorker extends Service {
                 // stop the service
                 getLooper().quit();
             }
-            else if(msg.arg1==1) {
+            else if(msg.arg1==0 || msg.arg1==1 || msg.arg1==2 || msg.arg1==3) {
                 // means tell fragments to update
                 // tell Main ui to update
                 Intent broadcastIntent = new Intent();
                 broadcastIntent.setAction(ACTION);
-                broadcastIntent.putExtra("current", 1);
+                broadcastIntent.putExtra("current", msg.arg1);
                 sendBroadcast(broadcastIntent);
                 LocalBroadcastManager.getInstance(BackgroundWorker.this).sendBroadcast(broadcastIntent);
             }
-            else if(msg.arg1==2) {
+            else if(msg.arg1==10 || msg.arg1==11 || msg.arg1==12 || msg.arg1==13) {
                 // means tell fragments to update
                 // tell Main ui to update
                 Intent broadcastIntent = new Intent();
                 broadcastIntent.setAction(ACTION);
-                broadcastIntent.putExtra("temp_history", 1);
+                broadcastIntent.putExtra("history", msg.arg1-10);
                 sendBroadcast(broadcastIntent);
                 LocalBroadcastManager.getInstance(BackgroundWorker.this).sendBroadcast(broadcastIntent);
             }

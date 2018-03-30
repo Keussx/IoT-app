@@ -2,10 +2,8 @@ package com.ksopha.thanetearth.location;
 
 import android.content.Context;
 import android.os.AsyncTask;
-
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.ksopha.thanetearth.http.HTTPClient;

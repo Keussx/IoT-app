@@ -38,18 +38,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Class representing a fragment for a Site with 4 sensors
+ * Class representing a fragment for a basic farm Site with 1 sensor
  * Created by Kelvin Sopha on 22/03/18.
  */
 
-public class GreenhouseFragment extends Fragment {
+public class BasicSiteFragment extends Fragment {
 
     private CardView [] cards;
     private ArcProgress[] averageArc;
     private LineChart [] charts;
     private String [] types = {"temperature", "moisture", "tds", "light"};
-    private String[] units = {"°C", "%", "ppm", "lx"};
     private List<String> sites = new ArrayList<>();
+    private String[] units = {"°C", "%", "ppm", "lx"};
     private int[] maxUnits = {100,100,1000,100000};
     private float[] suffixSize = {40f, 40f, 30f, 30f};
     private int ids[] = {R.id.average_temp, R.id.average_moisture, R.id.average_tds, R.id.average_light};
@@ -62,8 +62,8 @@ public class GreenhouseFragment extends Fragment {
      * @param siteID a site the fragment will display data for
      * @return instance
      */
-    public static GreenhouseFragment newInstance(String siteID) {
-        GreenhouseFragment instance = new GreenhouseFragment();
+    public static BasicSiteFragment newInstance(String siteID) {
+        BasicSiteFragment instance = new BasicSiteFragment();
 
         Bundle args = new Bundle();
         args.putString("fragmentID", siteID);
@@ -103,7 +103,7 @@ public class GreenhouseFragment extends Fragment {
         charts = new LineChart[4];
 
         // Inflate the layout for this fragment
-        View root =  inflater.inflate(R.layout.fragment_greenhouse, container, false);
+        View root =  inflater.inflate(R.layout.fragment_site_single_sensor, container, false);
 
         // save references to ui elements
         cards[0] = root.findViewById(R.id.temp_card);
@@ -130,6 +130,7 @@ public class GreenhouseFragment extends Fragment {
         charts[1] = setSectionLineChart("Moisture",  cards[1]);
         charts[2] = setSectionLineChart("Total Dissolved Solids",  cards[2]);
         charts[3] = setSectionLineChart("Light",  cards[3]);
+
 
         return root;
     }
@@ -190,180 +191,130 @@ public class GreenhouseFragment extends Fragment {
     }
 
 
-
     /**
      * update ui with measurement data
      * @param data sensor data
-     * @param sensors  list of sensors
+     * @param i  index of card
      */
-    private void updateUiBasicMeasures(int i, SensorBasicData[] data, List<Sensor> sensors){
+    private void updateUiBasicMeasures(int i, SensorBasicData data){
 
-        if(data != null && data.length>0 && sensors!=null) {
+        String val = sensorValGetter(data, i);
 
-            String val1 = sensorValGetter(data[0], i);
-            String val2 = sensorValGetter(data[1], i);
-            String val3 = sensorValGetter(data[2], i);
-            String val4 = sensorValGetter(data[3], i);
+        averageArc[i].setSuffixText(units[i]);
+        averageArc[i].setSuffixTextSize(suffixSize[i]);
+        averageArc[i].setMax(maxUnits[i]);
+        averageArc[i].setProgress(Math.round((Float.parseFloat(val))));
 
-            // update each sensor current temperature element
-            ((TextView) cards[i].findViewById(R.id.sensor1_val))
-                    .setText(sensors.get(0).getName() + ": " + val1 + " " + units[i]);
-            ((TextView) cards[i].findViewById(R.id.sensor2_val))
-                    .setText(sensors.get(1).getName() + ": " + val2 + " " + units[i]);
-            ((TextView) cards[i].findViewById(R.id.sensor3_val))
-                    .setText(sensors.get(2).getName() + ": " + val3 + " " + units[i]);
-            ((TextView) cards[i].findViewById(R.id.sensor4_val))
-                    .setText(sensors.get(3).getName() + ": " + val4 + " " + units[i]);
-
-
-            averageArc[i].setSuffixText(units[i]);
-            averageArc[i].setSuffixTextSize(suffixSize[i]);
-            averageArc[i].setMax(maxUnits[i]);
-            averageArc[i].setProgress(Math.round((Float.parseFloat(val1) + Float.parseFloat(val2)
-                    + Float.parseFloat(val3) + Float.parseFloat(val4)) / 4.00f));
-        }
     }
-
 
 
     /**
      * start update of current measurements
      */
-    public void updateCurrentGreenhouseData(){
+    public void updateCurrentSiteData(){
 
-        List<Sensor> sensors = Select.from(Sensor.class)
-                .where(Condition.prop("site").eq(fragmentID)).list();
+        Sensor sensor = Select.from(Sensor.class)
+                .where(Condition.prop("site").eq(fragmentID)).first();
 
 
-        boolean allValid = true;
-        SensorBasicData [] data = new SensorBasicData[sensors.size()];
+        boolean valid = true;
 
-        for(int i=0; i < data.length;i++){
-            SensorBasicData s = Select.from(SensorBasicData.class)
-                    .where(Condition.prop("sensor").eq(sensors.get(i).getId())).first();
+        SensorBasicData s = Select.from(SensorBasicData.class)
+                .where(Condition.prop("sensor").eq(sensor.getId())).first();
 
-            data[i] = s;
-
-            if(s == null)
-                allValid = false;
-        }
-
-        if(allValid){
-            updateUiBasicMeasures(0, data, sensors);
-            updateUiBasicMeasures(1, data, sensors);
-            updateUiBasicMeasures(2, data, sensors);
-            updateUiBasicMeasures(3, data, sensors);
+        if(s != null){
+            updateUiBasicMeasures(0, s);
+            updateUiBasicMeasures(1, s);
+            updateUiBasicMeasures(2, s);
+            updateUiBasicMeasures(3, s);
         }
     }
+
 
 
     /**
      * update the history for a chart
      * @param i  index of card
-     * @param sensors slist of sensors
+     * @param sensor single sensor
      */
-    private void updateSingleChartHistory(int i, List<Sensor> sensors){
+    private void updateSingleChartHistory(int i, Sensor sensor){
 
-        if(sensors.size() == 4) {
+        List<SensorHistory> sensor1Data = Select.from(SensorHistory.class)
+                .where(Condition.prop("sensor").eq(sensor.getId()),
+                        Condition.prop("type").eq(types[i])).orderBy("Id desc").list();
 
-            List<SensorHistory> sensor1Data = Select.from(SensorHistory.class)
-                    .where(Condition.prop("sensor").eq(sensors.get(0).getId()),
-                            Condition.prop("type").eq(types[i])).orderBy("Id desc").list();
+        // if there is data available that was stored
+        if(sensor1Data.size()>0){
 
-            List<SensorHistory> sensor2Data = Select.from(SensorHistory.class)
-                    .where(Condition.prop("sensor").eq(sensors.get(1).getId()),
-                            Condition.prop("type").eq(types[i])).orderBy("Id desc").list();
+            charts[i].setVisibility(View.VISIBLE);
+            unavailableViews[i].setVisibility(View.GONE);
 
-            List<SensorHistory> sensor3Data = Select.from(SensorHistory.class)
-                    .where(Condition.prop("sensor").eq(sensors.get(2).getId()),
-                            Condition.prop("type").eq(types[i])).orderBy("Id desc").list();
+            String[] xAxisGroups = new String[sensor1Data.size()];
 
-            List<SensorHistory> sensor4Data = Select.from(SensorHistory.class)
-                    .where(Condition.prop("sensor").eq(sensors.get(3).getId()),
-                            Condition.prop("type").eq(types[i])).orderBy("Id desc").list();
+            List<ILineDataSet> dataSets = new ArrayList<>();
 
-            // if there is data available that was stored
-            if (sensor1Data.size() > 0 && sensor2Data.size() > 0 && sensor3Data.size() > 0 && sensor4Data.size() > 0) {
+            int color = Color.rgb(198, 81, 230);
 
-                charts[i].setVisibility(View.VISIBLE);
-                unavailableViews[i].setVisibility(View.GONE);
-
-                String[] xAxisGroups = new String[sensor1Data.size()];
-
-                List<ILineDataSet> dataSets = new ArrayList<>();
-
-                int[] colors = {
-                        Color.rgb(17, 167, 170),
-                        Color.rgb(198, 81, 230),
-                        Color.rgb(230, 202, 81),
-                        Color.rgb(230, 76, 102)
-                };
-
-                // save update dates for sensors
-                for (int h = 0; h < xAxisGroups.length; h++) {
-                    xAxisGroups[h] = sensor1Data.get(h).getDate();
-                }
-
-
-                dataSets.add(toLineDataSet(sensors.get(0).getName(), colors[0], sensor1Data));
-                dataSets.add(toLineDataSet(sensors.get(1).getName(), colors[1], sensor2Data));
-                dataSets.add(toLineDataSet(sensors.get(2).getName(), colors[2], sensor3Data));
-                dataSets.add(toLineDataSet(sensors.get(3).getName(), colors[3], sensor4Data));
-
-                // setup legend
-                Legend legend = charts[i].getLegend();
-                legend.setTextSize(14f);
-                legend.setHorizontalAlignment(Legend.LegendHorizontalAlignment.CENTER);
-                legend.setXEntrySpace(25f);
-                legend.setTextColor(Color.rgb(255, 255, 255));
-
-                LineData data = new LineData(dataSets);
-
-                XAxis xAxis = charts[i].getXAxis();
-                xAxis.setGranularity(1.0f);
-                xAxis.setValueFormatter(new DateXAxisLabelFormatter(xAxisGroups));
-
-                charts[i].setData(data);
-                charts[i].setVisibleXRangeMaximum(2.435f);
-                charts[i].invalidate();
-
+            // save update dates for sensors
+            for(int h=0; h< xAxisGroups.length;h++){
+                xAxisGroups[h] = sensor1Data.get(h).getDate();
             }
 
 
-            // if there are no data available, hide graph, show message
-            else if(!BackgroundWorker.updatedSiteHistory[sites.indexOf(fragmentID)]) {
+            dataSets.add(toLineDataSet(sensor.getName(), color, sensor1Data));
 
-                charts[i].setVisibility(View.GONE);
-                unavailableViews[i].setVisibility(View.VISIBLE);
+            // setup legend
+            Legend legend = charts[i].getLegend();
+            legend.setTextSize(14f);
+            legend.setHorizontalAlignment(Legend.LegendHorizontalAlignment.CENTER);
+            legend.setXEntrySpace(25f);
+            legend.setTextColor(Color.rgb(255, 255, 255));
 
-            }
-            else{
-                charts[i].setVisibility(View.GONE);
-                unavailableViews[i].setVisibility(View.VISIBLE);
+            LineData data = new LineData(dataSets);
 
-                unavailableViews[i].setText(R.string.no_history);
+            XAxis xAxis = charts[i].getXAxis();
+            xAxis.setGranularity(1.0f);
+            xAxis.setValueFormatter(new DateXAxisLabelFormatter(xAxisGroups));
 
-            }
+            charts[i].setData(data);
+            charts[i].setVisibleXRangeMaximum(2.435f);
+            charts[i].invalidate();
+
         }
-    }
 
+        // if there are no data available, hide graph, show message
+        else if(!BackgroundWorker.updatedSiteHistory[sites.indexOf(fragmentID)]) {
+
+            charts[i].setVisibility(View.GONE);
+            unavailableViews[i].setVisibility(View.VISIBLE);
+
+        }
+        else{
+            charts[i].setVisibility(View.GONE);
+            unavailableViews[i].setVisibility(View.VISIBLE);
+
+            unavailableViews[i].setText(R.string.no_history);
+
+        }
+
+    }
 
 
     /**
      * start update of history measurements
      */
     public void updateHistoryData(){
-        List<Sensor> sensors = Select.from(Sensor.class)
-                .where(Condition.prop("site").eq(fragmentID)).list();
+        Sensor sensor = Select.from(Sensor.class)
+                .where(Condition.prop("site").eq(fragmentID)).first();
 
-        updateSingleChartHistory(0, sensors);
-        updateSingleChartHistory(1, sensors);
-        updateSingleChartHistory(2, sensors);
-        updateSingleChartHistory(3, sensors);
+        if(sensor != null) {
+            updateSingleChartHistory(0, sensor);
+            updateSingleChartHistory(1, sensor);
+            updateSingleChartHistory(2, sensor);
+            updateSingleChartHistory(3, sensor);
+        }
 
     }
-
-
 
 
     /**
@@ -411,6 +362,7 @@ public class GreenhouseFragment extends Fragment {
     }
 
 
+
     /**
      * Converts a list of measurement history for a sensor to  a LineDataSet
      * @param deviceName name of sensor
@@ -442,14 +394,16 @@ public class GreenhouseFragment extends Fragment {
     }
 
 
+
     /**
      * called when fragment id made visible to user
      */
     public void onResume(){
         super.onResume();
 
-        updateCurrentGreenhouseData();;
+        updateCurrentSiteData();;
         updateHistoryData();
     }
+
 
 }
