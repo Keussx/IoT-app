@@ -435,7 +435,6 @@ public class Main extends AppCompatActivity implements NavigationView.OnNavigati
                 int mode = intent.getIntExtra("history", -1);
 
                 // update greenhouse1 data if it is visible
-                // update greenhouse1 data if it is visible
                 if(mode==0 && greenhouse1.isVisible()){
                     greenhouse1.updateHistoryData();
                 }

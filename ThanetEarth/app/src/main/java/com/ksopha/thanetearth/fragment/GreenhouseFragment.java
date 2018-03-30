@@ -159,7 +159,7 @@ public class GreenhouseFragment extends Fragment {
         chart.getXAxis().setGridColor(Color.rgb(82,92,104));
         chart.setDragEnabled(true);
         chart.setScaleEnabled(true);
-        chart.getLegend().setTextSize(13);
+        chart.getLegend().setTextSize(13f);
         chart.getXAxis().setTextSize(12f);
         chart.getAxisRight().setTextColor(Color.rgb(255,255,255));
         chart.getAxisRight().setTextSize(12f);

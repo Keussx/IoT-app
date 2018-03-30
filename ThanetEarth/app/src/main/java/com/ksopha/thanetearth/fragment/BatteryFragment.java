@@ -11,6 +11,7 @@ import android.widget.TextView;
 import com.github.mikephil.charting.charts.HorizontalBarChart;
 import com.github.mikephil.charting.components.AxisBase;
 import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
@@ -87,7 +88,6 @@ public class BatteryFragment extends Fragment {
         chart.getAxisRight().setDrawGridLines(true);
         chart.getXAxis().setPosition(XAxis.XAxisPosition.BOTTOM);
         chart.getXAxis().setDrawAxisLine(true);
-        chart.getXAxis().setDrawLabels(true);
         chart.getXAxis().setDrawGridLines(false);
         chart.setDrawBarShadow(false);
         chart.getXAxis().setGridColor(Color.rgb(82,92,104));
@@ -153,26 +153,38 @@ public class BatteryFragment extends Fragment {
 
             xAxisNames[i] = name.substring(0, 1).toUpperCase() + name.substring(1) +" sensor";
 
-            entries.add(new BarEntry(i, batteryPercent ));
+            entries.add(new BarEntry(i * 1f, batteryPercent *1f ));
         }
 
         charts[index].getXAxis().setValueFormatter(new LabelFormatter(xAxisNames));
 
+        // set the base data set
         BarDataSet set = new BarDataSet(entries, "sensors");
         set.setColors(barStateColors);
         set.setDrawValues(false);
 
-        XAxis xAxis = charts[index].getXAxis();
-        xAxis.setGranularity(1f);
+        // configure the maximum and minimum values for battery levels
+        YAxis leftAxis = charts[index].getAxisLeft();
+        leftAxis.setPosition(YAxis.YAxisLabelPosition.OUTSIDE_CHART);
+        leftAxis.setAxisMinimum(0f);
+        leftAxis.setAxisMaximum(100f);
 
+        YAxis rightAxis = charts[index].getAxisRight();
+        rightAxis.setPosition(YAxis.YAxisLabelPosition.OUTSIDE_CHART);
+        rightAxis.setAxisMinimum(0f);
+        rightAxis.setAxisMaximum(100f);
+        rightAxis.setValueFormatter(new PercentFormatter());
+        rightAxis.setTextSize(13f);
+
+        // set granularity
+        charts[index].getXAxis().setGranularity(1f);
+        charts[index].getXAxis().setGranularityEnabled(true);
+
+        // add data to the chart and refresh
         BarData barData = new BarData(set);
         barData.setBarWidth(0.25f);
         charts[index].setData(barData);
-        charts[index].setVisibleXRangeMaximum(17f);
-        charts[index].getXAxis().setLabelCount(entries.size());
-        charts[index].setFitBars(true);
         charts[index].invalidate();
-
     }
 
 
@@ -273,6 +285,18 @@ public class BatteryFragment extends Fragment {
                 return  labels[index];
             }
             return "";
+        }
+    }
+
+    /**
+     * Class for creating custom percent value formatter
+     */
+    public class PercentFormatter implements IAxisValueFormatter {
+
+        @Override
+        public String getFormattedValue(float value, AxisBase axis) {
+
+            return (int)value+" % ";
         }
     }
 
