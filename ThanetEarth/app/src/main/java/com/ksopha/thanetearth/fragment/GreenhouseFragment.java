@@ -34,7 +34,9 @@ import com.ksopha.thanetearth.ormObject.SensorHistory;
 import com.ksopha.thanetearth.service.BackgroundWorker;
 import com.orm.query.Condition;
 import com.orm.query.Select;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -55,6 +57,7 @@ public class GreenhouseFragment extends Fragment {
     private int ids[] = {R.id.average_temp, R.id.average_moisture, R.id.average_tds, R.id.average_light};
     private TextView[] unavailableViews;
     private String fragmentID;
+    private SimpleDateFormat simpleFormatter;
 
 
     /**
@@ -92,6 +95,8 @@ public class GreenhouseFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+        simpleFormatter = new SimpleDateFormat("dd/MM/yy--hh:mm a ");
 
         sites.add("gh1");
         sites.add("gh2");
@@ -268,19 +273,19 @@ public class GreenhouseFragment extends Fragment {
 
             List<SensorHistory> sensor1Data = Select.from(SensorHistory.class)
                     .where(Condition.prop("sensor").eq(sensors.get(0).getId()),
-                            Condition.prop("type").eq(types[i])).orderBy("Id desc").list();
+                            Condition.prop("type").eq(types[i])).orderBy("date desc").list();
 
             List<SensorHistory> sensor2Data = Select.from(SensorHistory.class)
                     .where(Condition.prop("sensor").eq(sensors.get(1).getId()),
-                            Condition.prop("type").eq(types[i])).orderBy("Id desc").list();
+                            Condition.prop("type").eq(types[i])).orderBy("date desc").list();
 
             List<SensorHistory> sensor3Data = Select.from(SensorHistory.class)
                     .where(Condition.prop("sensor").eq(sensors.get(2).getId()),
-                            Condition.prop("type").eq(types[i])).orderBy("Id desc").list();
+                            Condition.prop("type").eq(types[i])).orderBy("date desc").list();
 
             List<SensorHistory> sensor4Data = Select.from(SensorHistory.class)
                     .where(Condition.prop("sensor").eq(sensors.get(3).getId()),
-                            Condition.prop("type").eq(types[i])).orderBy("Id desc").list();
+                            Condition.prop("type").eq(types[i])).orderBy("date desc").list();
 
             // if there is data available that was stored
             if (sensor1Data.size() > 0 && sensor2Data.size() > 0 && sensor3Data.size() > 0 && sensor4Data.size() > 0) {
@@ -301,7 +306,8 @@ public class GreenhouseFragment extends Fragment {
 
                 // save update dates for sensors
                 for (int h = 0; h < xAxisGroups.length; h++) {
-                    xAxisGroups[h] = sensor1Data.get(h).getDate();
+                    String date = simpleFormatter.format(new Date(sensor1Data.get(h).getDate()));
+                    xAxisGroups[h] =date;
                 }
 
 
@@ -353,14 +359,16 @@ public class GreenhouseFragment extends Fragment {
      * start update of history measurements
      */
     public void updateHistoryData(){
-        List<Sensor> sensors = Select.from(Sensor.class)
-                .where(Condition.prop("site").eq(fragmentID)).list();
+        try {
+            List<Sensor> sensors = Select.from(Sensor.class)
+                    .where(Condition.prop("site").eq(fragmentID)).list();
 
-        updateSingleChartHistory(0, sensors);
-        updateSingleChartHistory(1, sensors);
-        updateSingleChartHistory(2, sensors);
-        updateSingleChartHistory(3, sensors);
+            updateSingleChartHistory(0, sensors);
+            updateSingleChartHistory(1, sensors);
+            updateSingleChartHistory(2, sensors);
+            updateSingleChartHistory(3, sensors);
 
+        }catch(Exception e){}
     }
 
 

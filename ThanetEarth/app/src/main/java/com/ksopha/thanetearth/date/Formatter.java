@@ -25,19 +25,17 @@ public class Formatter {
 
 
     /**
-     * formats the date string
+     * formats the date stringas milliseconds
      * @param date the string to format
-     * @return formatted date
+     * @return formatted date in milliseconds
      */
-    public String format(String date){
+    public long format(String date){
         try {
-            Date d = oldFormat.parse(date);
-
-            return newFormat.format(d);
+            return oldFormat.parse(date).getTime();
 
         }catch (ParseException e){}
 
-        return "";
+        return 0;
     }
 
 }

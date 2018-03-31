@@ -58,7 +58,7 @@ public class NotificationHelper extends ContextWrapper{
 
         // intent to open activity if notification clicked
         Intent intent = new Intent(getApplicationContext(), Main.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
 
         Bundle bd = new Bundle();
         bd.putInt("alerts", 1);

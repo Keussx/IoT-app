@@ -34,7 +34,10 @@ import com.ksopha.thanetearth.ormObject.SensorHistory;
 import com.ksopha.thanetearth.service.BackgroundWorker;
 import com.orm.query.Condition;
 import com.orm.query.Select;
+
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -55,7 +58,7 @@ public class BasicSiteFragment extends Fragment {
     private int ids[] = {R.id.average_temp, R.id.average_moisture, R.id.average_tds, R.id.average_light};
     private TextView[] unavailableViews;
     private String fragmentID;
-
+    private SimpleDateFormat simpleFormatter;
 
     /**
      * Create new instance of fragment
@@ -92,6 +95,8 @@ public class BasicSiteFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+        simpleFormatter = new SimpleDateFormat("dd/MM/yy--hh:mm a ");
 
         sites.add("gh1");
         sites.add("gh2");
@@ -257,7 +262,8 @@ public class BasicSiteFragment extends Fragment {
 
             // save update dates for sensors
             for(int h=0; h< xAxisGroups.length;h++){
-                xAxisGroups[h] = sensor1Data.get(h).getDate();
+                String date = simpleFormatter.format(new Date(sensor1Data.get(h).getDate()));
+                xAxisGroups[h] =date;
             }
 
 

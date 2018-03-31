@@ -9,10 +9,10 @@ import com.orm.SugarRecord;
 public class SensorHistory extends SugarRecord {
     private Sensor sensor;
     private String type;
-    private String date;
+    private long date;
     private float value;
 
-    public SensorHistory(Sensor sensor, String type, String date, float value) {
+    public SensorHistory(Sensor sensor, String type, long date, float value) {
         this.sensor = sensor;
         this.type = type;
         this.date = date;
@@ -42,11 +42,11 @@ public class SensorHistory extends SugarRecord {
         this.type = type;
     }
 
-    public String getDate() {
+    public long getDate() {
         return date;
     }
 
-    public void setDate(String date) {
+    public void setDate(long date) {
         this.date = date;
     }
 

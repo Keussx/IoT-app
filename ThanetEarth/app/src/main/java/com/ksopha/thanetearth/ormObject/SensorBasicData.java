@@ -24,6 +24,7 @@ public class SensorBasicData extends SugarRecord {
     }
 
     public SensorBasicData() {
+
     }
 
 

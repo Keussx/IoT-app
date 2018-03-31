@@ -400,12 +400,6 @@ public class Main extends AppCompatActivity implements NavigationView.OnNavigati
     @Override
     protected void onResume() {
         LocalBroadcastManager.getInstance(this).registerReceiver(serviceMsgReceiver, intentFilter);
-
-        if(getIntent().hasExtra("alerts")){
-            Log.e("D", "has");
-            switchFragment(ALERTS_FRAG);
-        }
-
         super.onResume();
 
     }
@@ -417,6 +411,16 @@ public class Main extends AppCompatActivity implements NavigationView.OnNavigati
         super.onPause();
     }
 
+
+    public void onNewIntent(Intent intent){
+        super.onNewIntent(intent);
+
+        // when a new intent is received from notification
+        if(intent.hasExtra("alerts")){
+            Log.e("D", "has");
+            switchFragment(ALERTS_FRAG);
+        }
+    }
 
     /**
      * BroadcastReceiver for listening to data that BackgroundWorker broadcasts asynchronously

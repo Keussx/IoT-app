@@ -43,7 +43,6 @@ public class BackgroundWorker extends Service {
     private String[] sites = {"gh1", "gh2", "gh3", "outside"};
     public static boolean updatedSiteHistory[]= new boolean[4];
     private MeasurementChecker measurementChecker;
-    private SimpleDateFormat simpleFormatter= new SimpleDateFormat("dd/MM/yy--hh:mm a ");
     private NotificationHelper notificationHelper;
 
 
