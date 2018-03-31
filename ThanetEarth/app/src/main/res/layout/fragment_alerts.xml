@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?><!-- layout for monitoring fragment-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:table="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/grey"
+    android:fillViewport="true">
+
+
+        <de.codecrafters.tableview.SortableTableView
+            android:id="@+id/table_alerts"
+            android:layout_height="match_parent"
+            android:layout_width="match_parent"
+            table:tableView_columnCount="2"
+            android:layout_weight="4"
+            table:tableView_headerColor="@color/light_grey"
+            android:background="@android:color/white"/>
+</LinearLayout>

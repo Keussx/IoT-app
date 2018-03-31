@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.ksopha.thanetearth.Main"
+    tools:context="com.ksopha.thanetearth.activity.Main"
     android:background="@drawable/fade_bg">
 
     <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"

@@ -24,7 +24,8 @@
 
         <!-- action with no action bar, since app bar will be used -->
         <activity
-            android:name=".Main"
+            android:name=".activity.Main"
+            android:launchMode="singleTop"
 
             android:theme="@style/Theme.AppCompat.Light.NoActionBar">
             <intent-filter>

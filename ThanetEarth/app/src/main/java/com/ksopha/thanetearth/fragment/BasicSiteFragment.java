@@ -127,9 +127,9 @@ public class BasicSiteFragment extends Fragment {
 
 
         charts[0] = setSectionLineChart("Temperature",  cards[0]);
-        charts[1] = setSectionLineChart("Moisture",  cards[1]);
-        charts[2] = setSectionLineChart("Total Dissolved Solids",  cards[2]);
-        charts[3] = setSectionLineChart("Light",  cards[3]);
+        charts[1] = setSectionLineChart("Soil Moisture",  cards[1]);
+        charts[2] = setSectionLineChart("TDS(Total Dissolved Solids)",  cards[2]);
+        charts[3] = setSectionLineChart("LUX(Light Intensity)",  cards[3]);
 
 
         return root;

@@ -1,4 +1,4 @@
-package com.ksopha.thanetearth;
+package com.ksopha.thanetearth.activity;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -27,12 +27,15 @@ import android.view.WindowManager;
 import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
+import com.ksopha.thanetearth.R;
+import com.ksopha.thanetearth.fragment.AlertsFragment;
 import com.ksopha.thanetearth.fragment.BasicSiteFragment;
 import com.ksopha.thanetearth.fragment.BatteryFragment;
 import com.ksopha.thanetearth.fragment.MapFragment;
 import com.ksopha.thanetearth.fragment.GreenhouseFragment;
 import com.ksopha.thanetearth.fragment.StartupFragment;
 import com.ksopha.thanetearth.service.BackgroundWorker;
+import com.ksopha.thanetearth.service.NotificationHelper;
 
 public class Main extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
 
@@ -42,6 +45,7 @@ public class Main extends AppCompatActivity implements NavigationView.OnNavigati
     private final static String GRN_HOUSE2_TAG = "grn2_frag";
     private final static String GRN_HOUSE3_TAG = "grn3_frag";
     private final static String OUT_FRAG = "outside_frag";
+    private final static String ALERTS_FRAG = "alert_frag";
     private final static String BATT_FRAG = "power_frag";
     private final static int REQ_INTERVAL = 1000 * 60 ; // 1 minute in milliseconds
     private final static int ERROR_REQUEST_CODE = 8000; // random codes just to identify this activity
@@ -53,6 +57,7 @@ public class Main extends AppCompatActivity implements NavigationView.OnNavigati
     private GreenhouseFragment greenhouse1, greenhouse2, greenhouse3;
     private BasicSiteFragment outside;
     private BatteryFragment batteryFragment;
+    private AlertsFragment alerts;
     private Intent backgroundServiceIntent;
     private IntentFilter intentFilter;
     private Runnable drawerClosedRun;
@@ -62,6 +67,7 @@ public class Main extends AppCompatActivity implements NavigationView.OnNavigati
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
 
         navDrawerHandler = new Handler();
@@ -141,6 +147,7 @@ public class Main extends AppCompatActivity implements NavigationView.OnNavigati
         greenhouse3 = (GreenhouseFragment) fragManager.findFragmentByTag(GRN_HOUSE3_TAG);
         outside = (BasicSiteFragment) fragManager.findFragmentByTag(OUT_FRAG);
         batteryFragment = (BatteryFragment) fragManager.findFragmentByTag(BATT_FRAG);
+        alerts = (AlertsFragment) fragManager.findFragmentByTag(ALERTS_FRAG);
 
         // instantiate is null
         if(startupFragment == null){
@@ -163,6 +170,9 @@ public class Main extends AppCompatActivity implements NavigationView.OnNavigati
         }
         if(batteryFragment == null){
             batteryFragment = new BatteryFragment();
+        }
+        if(alerts == null){
+            alerts = new AlertsFragment();
         }
     }
 
@@ -208,6 +218,11 @@ public class Main extends AppCompatActivity implements NavigationView.OnNavigati
                 currentFragment = BATT_FRAG;
                 break;
 
+            case ALERTS_FRAG:
+                fragmentTransaction.replace(R.id.fragment_holder, alerts, ALERTS_FRAG);
+                currentFragment = ALERTS_FRAG;
+                break;
+
             case MAPVIEW_FRAG_TAG:
                 fragmentTransaction.replace(R.id.fragment_holder, mapViewFragment, MAPVIEW_FRAG_TAG);
                 currentFragment = MAPVIEW_FRAG_TAG;
@@ -225,7 +240,8 @@ public class Main extends AppCompatActivity implements NavigationView.OnNavigati
                 "Greenhouse 2" : (GRN_HOUSE3_TAG.equals(TAG)) ?
                 "Greenhouse 3" : (OUT_FRAG.equals(TAG)) ?
                 "Outdoor Monitoring Station" : (BATT_FRAG.equals(TAG)) ?
-                "Sensor Power" : (MAPVIEW_FRAG_TAG.equals(TAG)) ?
+                "Sensor Power Levels" : (ALERTS_FRAG.equals(TAG)) ?
+                "Alert Logs" : (MAPVIEW_FRAG_TAG.equals(TAG)) ?
                 "Site Locations" : "";
 
         getSupportActionBar().setSubtitle(title);
@@ -344,7 +360,8 @@ public class Main extends AppCompatActivity implements NavigationView.OnNavigati
             GRN_HOUSE2_TAG : (id == R.id.grn3 && !currentFragment.equals(GRN_HOUSE3_TAG)) ?
             GRN_HOUSE3_TAG : (id == R.id.out && !currentFragment.equals(OUT_FRAG)) ?
             OUT_FRAG : (id == R.id.power && !currentFragment.equals(BATT_FRAG)) ?
-            BATT_FRAG : (id == R.id.sites && !currentFragment.equals(MAPVIEW_FRAG_TAG)) ?
+            BATT_FRAG : (id == R.id.alerts && !currentFragment.equals(ALERTS_FRAG)) ?
+            ALERTS_FRAG : (id == R.id.sites && !currentFragment.equals(MAPVIEW_FRAG_TAG)) ?
             MAPVIEW_FRAG_TAG : "";
 
         drawerClosedRun = new Runnable() {
@@ -383,6 +400,12 @@ public class Main extends AppCompatActivity implements NavigationView.OnNavigati
     @Override
     protected void onResume() {
         LocalBroadcastManager.getInstance(this).registerReceiver(serviceMsgReceiver, intentFilter);
+
+        if(getIntent().hasExtra("alerts")){
+            Log.e("D", "has");
+            switchFragment(ALERTS_FRAG);
+        }
+
         super.onResume();
 
     }
@@ -409,7 +432,7 @@ public class Main extends AppCompatActivity implements NavigationView.OnNavigati
 
                 int mode = intent.getIntExtra("current", -1);
 
-                // update greenhouse1 data if it is visible
+                // update fragment data if it is visible
                 if(mode==0 && greenhouse1.isVisible()){
                     greenhouse1.updateCurrentGreenhouseData();
                 }
@@ -424,6 +447,9 @@ public class Main extends AppCompatActivity implements NavigationView.OnNavigati
                 }
                 else if(mode==3 && batteryFragment.isVisible()){
                     batteryFragment.updateUiBatteryMeasures();
+                }
+                else if(mode==4 && alerts.isVisible()){
+                    alerts.refreshLogViews();
                 }
 
             }
@@ -447,7 +473,6 @@ public class Main extends AppCompatActivity implements NavigationView.OnNavigati
                 else if (mode==3 && outside.isVisible()) {
                     outside.updateHistoryData();
                 }
-
             }
 
         }

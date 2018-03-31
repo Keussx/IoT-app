@@ -21,7 +21,11 @@
 
     <item
         android:id="@+id/power"
-        android:title="Sensor Power" />
+        android:title="Sensor Power Levels" />
+
+    <item
+        android:id="@+id/alerts"
+        android:title="Alert Logs" />
 
 
     <item
