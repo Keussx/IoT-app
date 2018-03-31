@@ -35,7 +35,7 @@ import com.ksopha.thanetearth.fragment.MapFragment;
 import com.ksopha.thanetearth.fragment.GreenhouseFragment;
 import com.ksopha.thanetearth.fragment.StartupFragment;
 import com.ksopha.thanetearth.service.BackgroundWorker;
-import com.ksopha.thanetearth.service.NotificationHelper;
+
 
 public class Main extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
 
@@ -184,52 +184,57 @@ public class Main extends AppCompatActivity implements NavigationView.OnNavigati
      */
     private void switchFragment(String fragmentTag){
 
-        FragmentTransaction fragmentTransaction = fragManager.beginTransaction();
+        // if not viewing this fragment
+        if(currentFragment!= fragmentTag){
 
-        switch (fragmentTag){
+            FragmentTransaction fragmentTransaction = fragManager.beginTransaction();
 
-            case STARTUP_FRAG_TAG:
-                fragmentTransaction.replace(R.id.fragment_holder, startupFragment, STARTUP_FRAG_TAG);
-                currentFragment = STARTUP_FRAG_TAG;
-                break;
+            switch (fragmentTag){
 
-            case GRN_HOUSE1_TAG:
-                fragmentTransaction.replace(R.id.fragment_holder, greenhouse1, GRN_HOUSE1_TAG);
-                currentFragment = GRN_HOUSE1_TAG;
-                break;
+                case STARTUP_FRAG_TAG:
+                    fragmentTransaction.replace(R.id.fragment_holder, startupFragment, STARTUP_FRAG_TAG);
+                    currentFragment = STARTUP_FRAG_TAG;
+                    break;
 
-            case GRN_HOUSE2_TAG:
-                fragmentTransaction.replace(R.id.fragment_holder, greenhouse2, GRN_HOUSE2_TAG);
-                currentFragment = GRN_HOUSE2_TAG;
-                break;
+                case GRN_HOUSE1_TAG:
+                    fragmentTransaction.replace(R.id.fragment_holder, greenhouse1, GRN_HOUSE1_TAG);
+                    currentFragment = GRN_HOUSE1_TAG;
+                    break;
 
-            case GRN_HOUSE3_TAG:
-                fragmentTransaction.replace(R.id.fragment_holder, greenhouse3, GRN_HOUSE3_TAG);
-                currentFragment = GRN_HOUSE3_TAG;
-                break;
+                case GRN_HOUSE2_TAG:
+                    fragmentTransaction.replace(R.id.fragment_holder, greenhouse2, GRN_HOUSE2_TAG);
+                    currentFragment = GRN_HOUSE2_TAG;
+                    break;
 
-            case OUT_FRAG:
-                fragmentTransaction.replace(R.id.fragment_holder, outside, OUT_FRAG);
-                currentFragment = OUT_FRAG;
-                break;
+                case GRN_HOUSE3_TAG:
+                    fragmentTransaction.replace(R.id.fragment_holder, greenhouse3, GRN_HOUSE3_TAG);
+                    currentFragment = GRN_HOUSE3_TAG;
+                    break;
 
-            case BATT_FRAG:
-                fragmentTransaction.replace(R.id.fragment_holder, batteryFragment, BATT_FRAG);
-                currentFragment = BATT_FRAG;
-                break;
+                case OUT_FRAG:
+                    fragmentTransaction.replace(R.id.fragment_holder, outside, OUT_FRAG);
+                    currentFragment = OUT_FRAG;
+                    break;
 
-            case ALERTS_FRAG:
-                fragmentTransaction.replace(R.id.fragment_holder, alerts, ALERTS_FRAG);
-                currentFragment = ALERTS_FRAG;
-                break;
+                case BATT_FRAG:
+                    fragmentTransaction.replace(R.id.fragment_holder, batteryFragment, BATT_FRAG);
+                    currentFragment = BATT_FRAG;
+                    break;
 
-            case MAPVIEW_FRAG_TAG:
-                fragmentTransaction.replace(R.id.fragment_holder, mapViewFragment, MAPVIEW_FRAG_TAG);
-                currentFragment = MAPVIEW_FRAG_TAG;
+                case ALERTS_FRAG:
+                    fragmentTransaction.replace(R.id.fragment_holder, alerts, ALERTS_FRAG);
+                    currentFragment = ALERTS_FRAG;
+                    break;
 
+                case MAPVIEW_FRAG_TAG:
+                    fragmentTransaction.replace(R.id.fragment_holder, mapViewFragment, MAPVIEW_FRAG_TAG);
+                    currentFragment = MAPVIEW_FRAG_TAG;
+
+            }
+
+            fragmentTransaction.commit();
         }
 
-        fragmentTransaction.commit();
     }
 
 
@@ -355,13 +360,13 @@ public class Main extends AppCompatActivity implements NavigationView.OnNavigati
 
         int id = item.getItemId();
 
-        final String tag =  (id == R.id.grn1 && !currentFragment.equals(GRN_HOUSE1_TAG)) ?
-            GRN_HOUSE1_TAG : (id == R.id.grn2 && !currentFragment.equals(GRN_HOUSE2_TAG)) ?
-            GRN_HOUSE2_TAG : (id == R.id.grn3 && !currentFragment.equals(GRN_HOUSE3_TAG)) ?
-            GRN_HOUSE3_TAG : (id == R.id.out && !currentFragment.equals(OUT_FRAG)) ?
-            OUT_FRAG : (id == R.id.power && !currentFragment.equals(BATT_FRAG)) ?
-            BATT_FRAG : (id == R.id.alerts && !currentFragment.equals(ALERTS_FRAG)) ?
-            ALERTS_FRAG : (id == R.id.sites && !currentFragment.equals(MAPVIEW_FRAG_TAG)) ?
+        final String tag =  (id == R.id.grn1) ?
+            GRN_HOUSE1_TAG : (id == R.id.grn2) ?
+            GRN_HOUSE2_TAG : (id == R.id.grn3) ?
+            GRN_HOUSE3_TAG : (id == R.id.out) ?
+            OUT_FRAG : (id == R.id.power) ?
+            BATT_FRAG : (id == R.id.alerts) ?
+            ALERTS_FRAG : (id == R.id.sites) ?
             MAPVIEW_FRAG_TAG : "";
 
         drawerClosedRun = new Runnable() {
@@ -417,7 +422,6 @@ public class Main extends AppCompatActivity implements NavigationView.OnNavigati
 
         // when a new intent is received from notification
         if(intent.hasExtra("alerts")){
-            Log.e("D", "has");
             switchFragment(ALERTS_FRAG);
         }
     }
