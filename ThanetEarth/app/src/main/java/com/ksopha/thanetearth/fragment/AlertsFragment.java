@@ -221,6 +221,10 @@ public class AlertsFragment extends Fragment {
 
         refreshLogViews();
 
+        clearNotifications();
+    }
+
+    public void clearNotifications(){
         // clear any notifications, since user already viewing logs
         NotificationManager nMgr =
                 (NotificationManager) getActivity().getSystemService(Context.NOTIFICATION_SERVICE);

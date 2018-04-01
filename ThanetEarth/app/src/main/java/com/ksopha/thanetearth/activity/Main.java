@@ -353,6 +353,7 @@ public class Main extends AppCompatActivity implements NavigationView.OnNavigati
 
     private void clearAlerts(){
         if(currentFragment.equals(ALERTS_FRAG)){
+            alerts.clearNotifications();
             alerts.setNewLogsAsRead();
         }
     }
