@@ -7,7 +7,6 @@ import com.ksopha.thanetearth.date.Formatter;
 import com.ksopha.thanetearth.ormObject.Sensor;
 import com.ksopha.thanetearth.ormObject.SensorBasicData;
 import com.ksopha.thanetearth.ormObject.SensorHistory;
-import com.orm.SugarRecord;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
@@ -64,14 +63,7 @@ public class SensorJsonDataParser {
                         sensors.add(new Sensor(deviceId, zone.get("id").asText(), siteId));
                     }
                 }
-
-                if(sensors!=null && sensors.size()>0){
-                    //save and return
-                    SugarRecord.saveInTx(sensors);
-                    return sensors;
-                }
-
-
+                return sensors;
 
             } catch (Exception e) {Log.e("E", e.getMessage());
             }

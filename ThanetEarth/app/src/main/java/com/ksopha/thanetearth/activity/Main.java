@@ -37,6 +37,7 @@ import com.ksopha.thanetearth.fragment.StartupFragment;
 import com.ksopha.thanetearth.service.BackgroundWorker;
 
 
+
 public class Main extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
 
     private final static String STARTUP_FRAG_TAG = "start_frag";

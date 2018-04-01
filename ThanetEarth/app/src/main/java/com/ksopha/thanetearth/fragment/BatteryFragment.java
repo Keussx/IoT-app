@@ -19,9 +19,10 @@ import com.github.mikephil.charting.formatter.IAxisValueFormatter;
 import com.ksopha.thanetearth.R;
 import com.ksopha.thanetearth.ormObject.Sensor;
 import com.ksopha.thanetearth.ormObject.SensorBasicData;
-import com.orm.query.Select;
 import java.util.ArrayList;
 import java.util.List;
+
+import io.realm.Realm;
 
 /**
  * Created by Kelvin Sopha on 22/03/18.
@@ -32,6 +33,7 @@ public class BatteryFragment extends Fragment {
     private HorizontalBarChart[] charts;
     private TextView[] unavailables;
     private int [] colors;
+    private Realm realm;
 
 
     /**
@@ -53,6 +55,8 @@ public class BatteryFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+        realm = Realm.getDefaultInstance();
 
         colors = new int[4];
         colors[0] = Color.rgb(50,196,91);
@@ -194,7 +198,7 @@ public class BatteryFragment extends Fragment {
      */
     public void updateUiBatteryMeasures(){
 
-        List<SensorBasicData> data = Select.from(SensorBasicData.class).list();
+        List<SensorBasicData> data = realm.where(SensorBasicData.class).findAll();
 
         List<SensorBasicData> site1 = new ArrayList<>();
         List<SensorBasicData> site2 = new ArrayList<>();

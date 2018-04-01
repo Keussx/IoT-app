@@ -32,13 +32,13 @@ import com.ksopha.thanetearth.ormObject.Sensor;
 import com.ksopha.thanetearth.ormObject.SensorBasicData;
 import com.ksopha.thanetearth.ormObject.SensorHistory;
 import com.ksopha.thanetearth.service.BackgroundWorker;
-import com.orm.query.Condition;
-import com.orm.query.Select;
-
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import io.realm.Realm;
+import io.realm.Sort;
 
 /**
  * Class representing a fragment for a basic farm Site with 1 sensor
@@ -59,6 +59,7 @@ public class BasicSiteFragment extends Fragment {
     private TextView[] unavailableViews;
     private String fragmentID;
     private SimpleDateFormat simpleFormatter;
+    private Realm realm;
 
     /**
      * Create new instance of fragment
@@ -95,6 +96,8 @@ public class BasicSiteFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+        realm = Realm.getDefaultInstance();
 
         simpleFormatter = new SimpleDateFormat("dd/MM/yy--hh:mm a ");
 
@@ -218,21 +221,21 @@ public class BasicSiteFragment extends Fragment {
      */
     public void updateCurrentSiteData(){
 
-        Sensor sensor = Select.from(Sensor.class)
-                .where(Condition.prop("site").eq(fragmentID)).first();
+        Sensor sensor = realm.where(Sensor.class).equalTo("site", fragmentID).findFirst();
 
+        if(sensor != null){
 
-        boolean valid = true;
+            SensorBasicData s = realm.where(SensorBasicData.class)
+                    .equalTo("sensor.id", sensor.getId()).findFirst();
 
-        SensorBasicData s = Select.from(SensorBasicData.class)
-                .where(Condition.prop("sensor").eq(sensor.getId())).first();
-
-        if(s != null){
-            updateUiBasicMeasures(0, s);
-            updateUiBasicMeasures(1, s);
-            updateUiBasicMeasures(2, s);
-            updateUiBasicMeasures(3, s);
+            if(s != null){
+                updateUiBasicMeasures(0, s);
+                updateUiBasicMeasures(1, s);
+                updateUiBasicMeasures(2, s);
+                updateUiBasicMeasures(3, s);
+            }
         }
+
     }
 
 
@@ -244,9 +247,9 @@ public class BasicSiteFragment extends Fragment {
      */
     private void updateSingleChartHistory(int i, Sensor sensor){
 
-        List<SensorHistory> sensor1Data = Select.from(SensorHistory.class)
-                .where(Condition.prop("sensor").eq(sensor.getId()),
-                        Condition.prop("type").eq(types[i])).orderBy("Id desc").list();
+        List<SensorHistory> sensor1Data = realm.where(SensorHistory.class)
+                .equalTo("sensor.id", sensor.getId())
+                .equalTo("type", types[i]).sort("date", Sort.DESCENDING).findAll();
 
         // if there is data available that was stored
         if(sensor1Data.size()>0){
@@ -310,8 +313,7 @@ public class BasicSiteFragment extends Fragment {
      * start update of history measurements
      */
     public void updateHistoryData(){
-        Sensor sensor = Select.from(Sensor.class)
-                .where(Condition.prop("site").eq(fragmentID)).first();
+        Sensor sensor = realm.where(Sensor.class).equalTo("site", fragmentID).findFirst();
 
         if(sensor != null) {
             updateSingleChartHistory(0, sensor);

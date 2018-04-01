@@ -14,13 +14,11 @@ import com.ksopha.thanetearth.ormObject.Sensor;
 import com.ksopha.thanetearth.ormObject.SensorBasicData;
 import com.ksopha.thanetearth.sensor.SensorAPIWorker;
 import com.ksopha.thanetearth.ormObject.SensorHistory;
-import com.orm.SugarRecord;
-import com.orm.query.Condition;
-import com.orm.query.Select;
 import java.lang.ref.WeakReference;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import io.realm.Realm;
+import io.realm.Sort;
 
 
 /**
@@ -95,8 +93,21 @@ public class BackgroundWorker extends Service {
     private void getSiteIdZones(){
         if(sensors==null || sensors.isEmpty()) {
             // clear since data might change on server
-            Sensor.deleteAll(Sensor.class);
-            sensors = sensorAPIWorker.getSaveAndReturnSensors();
+            Realm realm = Realm.getDefaultInstance();
+            realm.beginTransaction();
+            realm.where(Sensor.class).findAll().deleteAllFromRealm();
+            realm.commitTransaction();
+
+            sensors = sensorAPIWorker.getSensors();
+
+            if(sensors!=null && !sensors.isEmpty()){
+                //save sensors
+                realm.beginTransaction();
+                realm.insert(sensors);
+                realm.commitTransaction();
+            }
+            realm.close();
+
         }
     }
 
@@ -118,9 +129,12 @@ public class BackgroundWorker extends Service {
             toRemove.addAll(checkForUnusualData(siteData));
 
             if(siteData != null && siteData.size()>0){
-
+                Realm realm = Realm.getDefaultInstance();
                 // save records to database
-                SugarRecord.saveInTx(siteData);
+                realm.beginTransaction();
+                realm.insertOrUpdate(siteData);
+                realm.commitTransaction();
+                realm.close();
 
                 // set to true so we can notify Main activity
                 siteDataSaved = true;
@@ -140,9 +154,11 @@ public class BackgroundWorker extends Service {
         // if there are not alert logs to save, save, then send notification about new alerts
         if(toRemove.size() > 0){
 
-            for(Log log:toRemove){
-                log.save();
-            }
+            Realm realm = Realm.getDefaultInstance();
+            realm.beginTransaction();
+            realm.insert(toRemove);
+            realm.commitTransaction();
+            realm.close();
 
             // to tell activity to update alerts if visible
             Message msg1 = new Message();
@@ -235,11 +251,19 @@ public class BackgroundWorker extends Service {
      */
     private boolean checkIfCanNotifyLog(Log k){
 
+        long date1, date2;
+
         // check if exist another log with same msg and date (excluding time) inserted earlier
-        Log earlier = Select.from(Log.class).where(Condition.prop("msg").eq(k.getMsg())).orderBy("id").first();
+        Realm realm = Realm.getDefaultInstance();
+        Log earlier = realm.where(Log.class).equalTo("msg", k.getMsg())
+                .sort("date", Sort.DESCENDING).findFirst();
+
+        date1 = k.getDate();
+        date2 = earlier==null ? 0: earlier.getDate();
+        realm.close();
 
         // if log not stored, or if same log was stored earlier (more than 1 day) we can notify it
-        return (earlier==null || (earlier!=null && isDateBiggerByDay(k.getDate(),earlier.getDate())));
+        return (date2==0 || (earlier!=null && isDateBiggerByDay(date1 ,date2)));
     }
 
 
@@ -270,12 +294,14 @@ public class BackgroundWorker extends Service {
                 return false;
             }
 
-
+            Realm realm = Realm.getDefaultInstance();
+            realm.beginTransaction();
             // save to database
-            for(SensorHistory s:siteData)
-                s.store();
-
+            realm.insertOrUpdate(siteData);
+            realm.commitTransaction();
+            realm.close();
         }
+
         return  true;
     }
 
@@ -318,8 +344,11 @@ public class BackgroundWorker extends Service {
             while(isRunning){
 
                 getSiteIdZones();
-
-                SensorBasicData.deleteAll(SensorBasicData.class);
+                Realm realm = Realm.getDefaultInstance();
+                realm.beginTransaction();
+                realm.where(SensorBasicData.class).findAll().deleteAllFromRealm();
+                realm.commitTransaction();
+                realm.close();
                 checkAndSaveBasicSiteData(handler);
 
 
@@ -334,8 +363,11 @@ public class BackgroundWorker extends Service {
                 if(!pulledHistory) {
 
                     updatedSiteHistory[0]=updatedSiteHistory[1]=updatedSiteHistory[2]=updatedSiteHistory[3]=false;
-
-                    SensorHistory.deleteAll(SensorHistory.class);
+                    Realm realm2 = Realm.getDefaultInstance();
+                    realm2.beginTransaction();
+                    realm2.where(SensorHistory.class).findAll().deleteAllFromRealm();
+                    realm2.commitTransaction();
+                    realm2.close();
                     pulledHistory=true;
 
                     for(int i=0;i< sites.length; i++){

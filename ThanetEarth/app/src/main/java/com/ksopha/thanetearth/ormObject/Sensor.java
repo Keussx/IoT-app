@@ -1,34 +1,35 @@
 package com.ksopha.thanetearth.ormObject;
 
-import com.orm.SugarRecord;
-import com.orm.dsl.Unique;
+import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
 
 /**
  * Created by Kelvin Sopha on 29/03/18.
  */
 
-public class Sensor extends SugarRecord{
-    @Unique
-    private String sensorID;
+public class Sensor extends RealmObject {
+    @PrimaryKey
+    private String id;
     private String name;
     private String site;
 
     public Sensor(String sensorID, String name, String site) {
-        this.sensorID = sensorID;
+        this.id = sensorID;
         this.name = name;
         this.site = site;
-    }
-
-    public String getSensorID() {
-        return sensorID;
     }
 
     public Sensor(){
 
     }
 
-    public void setSensorID(String sensorID) {
-        this.sensorID = sensorID;
+    public String getId() {
+        return id;
+    }
+
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getName() {

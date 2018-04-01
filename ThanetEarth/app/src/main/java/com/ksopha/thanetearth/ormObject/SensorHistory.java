@@ -1,12 +1,12 @@
 package com.ksopha.thanetearth.ormObject;
 
-import com.orm.SugarRecord;
+import io.realm.RealmObject;
 
 /**
  * Created by Kelvin Sopha on 27/03/18.
  */
 
-public class SensorHistory extends SugarRecord {
+public class SensorHistory extends RealmObject {
     private Sensor sensor;
     private String type;
     private long date;
@@ -19,12 +19,10 @@ public class SensorHistory extends SugarRecord {
         this.value = value;
     }
 
-    public SensorHistory() {
+    public SensorHistory(){
+
     }
 
-    public void store(){
-        save();
-    }
 
     public Sensor getSensor() {
         return sensor;

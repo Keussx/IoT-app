@@ -1,13 +1,14 @@
 package com.ksopha.thanetearth.ormObject;
 
-import com.orm.SugarRecord;
+
+import io.realm.RealmObject;
 
 /**
  * Basic log message
  * Created by Kelvin Sopha on 31/03/18.
  */
 
-public class Log extends SugarRecord{
+public class Log extends RealmObject {
     private long date;
     private String msg;
 

@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.CardView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,12 +33,12 @@ import com.ksopha.thanetearth.ormObject.Sensor;
 import com.ksopha.thanetearth.ormObject.SensorBasicData;
 import com.ksopha.thanetearth.ormObject.SensorHistory;
 import com.ksopha.thanetearth.service.BackgroundWorker;
-import com.orm.query.Condition;
-import com.orm.query.Select;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import io.realm.Realm;
+import io.realm.Sort;
 
 /**
  * Class representing a fragment for a Site with 4 sensors
@@ -58,6 +59,7 @@ public class GreenhouseFragment extends Fragment {
     private TextView[] unavailableViews;
     private String fragmentID;
     private SimpleDateFormat simpleFormatter;
+    private Realm realm;
 
 
     /**
@@ -95,6 +97,8 @@ public class GreenhouseFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+        realm = Realm.getDefaultInstance();
 
         simpleFormatter = new SimpleDateFormat("dd/MM/yy--hh:mm a ");
 
@@ -236,16 +240,15 @@ public class GreenhouseFragment extends Fragment {
      */
     public void updateCurrentGreenhouseData(){
 
-        List<Sensor> sensors = Select.from(Sensor.class)
-                .where(Condition.prop("site").eq(fragmentID)).list();
-
+        List<Sensor> sensors = realm.where(Sensor.class)
+                .equalTo("site", fragmentID).findAll();
 
         boolean allValid = true;
         SensorBasicData [] data = new SensorBasicData[sensors.size()];
 
         for(int i=0; i < data.length;i++){
-            SensorBasicData s = Select.from(SensorBasicData.class)
-                    .where(Condition.prop("sensor").eq(sensors.get(i).getId())).first();
+            SensorBasicData s = realm.where(SensorBasicData.class)
+                    .equalTo("sensor.id", sensors.get(i).getId()).findFirst();
 
             data[i] = s;
 
@@ -271,21 +274,17 @@ public class GreenhouseFragment extends Fragment {
 
         if(sensors.size() == 4) {
 
-            List<SensorHistory> sensor1Data = Select.from(SensorHistory.class)
-                    .where(Condition.prop("sensor").eq(sensors.get(0).getId()),
-                            Condition.prop("type").eq(types[i])).orderBy("date desc").list();
+            List<SensorHistory> sensor1Data = realm.where(SensorHistory.class).equalTo("sensor.id", sensors.get(0).getId())
+                    .equalTo("type", types[i]).sort("date", Sort.DESCENDING).findAll();
 
-            List<SensorHistory> sensor2Data = Select.from(SensorHistory.class)
-                    .where(Condition.prop("sensor").eq(sensors.get(1).getId()),
-                            Condition.prop("type").eq(types[i])).orderBy("date desc").list();
+            List<SensorHistory> sensor2Data = realm.where(SensorHistory.class).equalTo("sensor.id", sensors.get(1).getId())
+                    .equalTo("type", types[i]).sort("date", Sort.DESCENDING).findAll();
 
-            List<SensorHistory> sensor3Data = Select.from(SensorHistory.class)
-                    .where(Condition.prop("sensor").eq(sensors.get(2).getId()),
-                            Condition.prop("type").eq(types[i])).orderBy("date desc").list();
+            List<SensorHistory> sensor3Data = realm.where(SensorHistory.class).equalTo("sensor.id", sensors.get(2).getId())
+                    .equalTo("type", types[i]).sort("date", Sort.DESCENDING).findAll();
 
-            List<SensorHistory> sensor4Data = Select.from(SensorHistory.class)
-                    .where(Condition.prop("sensor").eq(sensors.get(3).getId()),
-                            Condition.prop("type").eq(types[i])).orderBy("date desc").list();
+            List<SensorHistory> sensor4Data = realm.where(SensorHistory.class).equalTo("sensor.id", sensors.get(3).getId())
+                    .equalTo("type", types[i]).sort("date", Sort.DESCENDING).findAll();
 
             // if there is data available that was stored
             if (sensor1Data.size() > 0 && sensor2Data.size() > 0 && sensor3Data.size() > 0 && sensor4Data.size() > 0) {
@@ -360,8 +359,8 @@ public class GreenhouseFragment extends Fragment {
      */
     public void updateHistoryData(){
         try {
-            List<Sensor> sensors = Select.from(Sensor.class)
-                    .where(Condition.prop("site").eq(fragmentID)).list();
+            List<Sensor> sensors = realm.where(Sensor.class)
+                    .equalTo("site", fragmentID).findAll();
 
             updateSingleChartHistory(0, sensors);
             updateSingleChartHistory(1, sensors);

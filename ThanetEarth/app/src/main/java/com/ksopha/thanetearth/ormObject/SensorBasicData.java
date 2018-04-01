@@ -1,12 +1,12 @@
 package com.ksopha.thanetearth.ormObject;
 
-import com.orm.SugarRecord;
+import io.realm.RealmObject;
 
 /**
  * Created by Kelvin Sopha on 29/03/18.
  */
 
-public class SensorBasicData extends SugarRecord {
+public class SensorBasicData extends RealmObject {
     private Sensor sensor;
     private int tds;
     private int light;
@@ -23,14 +23,10 @@ public class SensorBasicData extends SugarRecord {
         this.batteryLevel = batteryLevel;
     }
 
-    public SensorBasicData() {
+    public SensorBasicData(){
 
     }
 
-
-    public void store(){
-        save();
-    }
 
     public Sensor getSensor() {
         return sensor;

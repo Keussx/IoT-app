@@ -10,9 +10,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import com.ksopha.thanetearth.R;
-import com.orm.query.Select;
-
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Comparator;
 import java.util.Date;
@@ -21,6 +18,8 @@ import de.codecrafters.tableview.SortableTableView;
 import de.codecrafters.tableview.TableDataAdapter;
 import de.codecrafters.tableview.model.TableColumnWeightModel;
 import de.codecrafters.tableview.toolkit.SimpleTableHeaderAdapter;
+import io.realm.Realm;
+import io.realm.Sort;
 
 
 /**
@@ -32,6 +31,7 @@ public class AlertsFragment extends Fragment {
     private SortableTableView tableView;
     private String[] headers = {"Date", "Message"};
     private final static SimpleDateFormat dateFormatter= new SimpleDateFormat("dd/MM/yy--hh:mm a ");
+    private Realm realm;
 
 
     /**
@@ -52,6 +52,8 @@ public class AlertsFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+        realm = Realm.getDefaultInstance();
 
         // Inflate the layout for this fragment
         View root = inflater.inflate(R.layout.fragment_alerts, container, false);
@@ -76,7 +78,7 @@ public class AlertsFragment extends Fragment {
      */
     public void refreshLogViews(){
         // since latest ids
-        List<Log> logs = Select.from(Log.class).orderBy("date desc").list();
+        List<Log> logs = realm.where(Log.class).findAll().sort("date", Sort.DESCENDING);
 
         android.util.Log.e("R",logs.size() + " items" );
 

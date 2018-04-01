@@ -4,6 +4,7 @@ import com.ksopha.thanetearth.http.HTTPClient;
 import com.ksopha.thanetearth.ormObject.Sensor;
 import com.ksopha.thanetearth.ormObject.SensorBasicData;
 import com.ksopha.thanetearth.ormObject.SensorHistory;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -66,7 +67,7 @@ public class SensorAPIWorker {
      * returns a list of sensors from all sites
      * @return sensor list
      */
-    public List<Sensor> getSaveAndReturnSensors(){
+    public List<Sensor> getSensors(){
 
         // get device Ids here
         String response = httpClient.getHttpResponseAsString(BASE_URL + "sites");
@@ -84,7 +85,7 @@ public class SensorAPIWorker {
      */
     private SensorBasicData getSensorBasicData(Sensor sensor){
 
-        String deviceID = sensor.getSensorID();
+        String deviceID = sensor.getId();
 
         // get all device data here
 
@@ -130,7 +131,7 @@ public class SensorAPIWorker {
                 if(siteId.equals(sensor.getSite())){
 
                     String response = httpClient.getHttpResponseAsString(BASE_URL +
-                            "device/" + sensor.getSensorID() + url_extra);
+                            "device/" + sensor.getId() + url_extra);
 
                     List<SensorHistory> entries =
                             sensorJsonDataParser.getSensorSensorHistoryListFromJson(sensor, type, response);
