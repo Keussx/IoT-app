@@ -2,6 +2,7 @@ package com.ksopha.thanetearth.activity;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
@@ -15,6 +16,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -60,11 +62,11 @@ public class Main extends AppCompatActivity implements NavigationView.OnNavigati
     private BasicSiteFragment outside;
     private BatteryFragment batteryFragment;
     private AlertsFragment alerts;
-    private Intent backgroundServiceIntent;
     private IntentFilter intentFilter;
     private Runnable drawerClosedRun;
     private Handler navDrawerHandler;
     private Button markAllasRead;
+    private Intent backgroundServiceIntent;
 
 
     @Override
@@ -141,7 +143,8 @@ public class Main extends AppCompatActivity implements NavigationView.OnNavigati
 
         intentFilter = new IntentFilter();
         intentFilter.addAction(BackgroundWorker.ACTION);
-        backgroundServiceIntent = new Intent(getApplicationContext(), BackgroundWorker.class);
+        backgroundServiceIntent = new Intent(this, BackgroundWorker.class);
+
         startBackgroundService();
 
     }
@@ -362,7 +365,23 @@ public class Main extends AppCompatActivity implements NavigationView.OnNavigati
     @Override
     public void onBackPressed() {
 
-        finish();
+        // notify before closing
+        new AlertDialog.Builder(this)
+            .setIcon(android.R.drawable.ic_dialog_alert)
+            .setTitle("Exit App")
+            .setMessage("Are you sure you want to exit?")
+            .setPositiveButton("Yes", new DialogInterface.OnClickListener()
+            {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    stopService(backgroundServiceIntent);
+                    finish();
+                }
+
+            })
+            .setNegativeButton("No", null)
+            .show();
+
     }
 
 
@@ -415,7 +434,7 @@ public class Main extends AppCompatActivity implements NavigationView.OnNavigati
 
 
     private void startBackgroundService(){
-       startService(backgroundServiceIntent);
+        startService(backgroundServiceIntent);
     }
 
 
@@ -445,6 +464,8 @@ public class Main extends AppCompatActivity implements NavigationView.OnNavigati
             switchFragment(ALERTS_FRAG);
         }
     }
+
+
 
     /**
      * BroadcastReceiver for listening to data that BackgroundWorker broadcasts asynchronously

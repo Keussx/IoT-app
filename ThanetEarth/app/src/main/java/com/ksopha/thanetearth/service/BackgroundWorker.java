@@ -35,13 +35,15 @@ public class BackgroundWorker extends Service {
     private SensorAPIWorker sensorAPIWorker;
     private List<Sensor> sensors;
     private ServiceHandler serviceHandler;
-    private LooperThread thread;
+    private static LooperThread thread;
     private boolean pulledHistory;
     private String [] types = {"temperature", "moisture", "tds", "light"};
     private String[] sites = {"gh1", "gh2", "gh3", "outside"};
     public static boolean updatedSiteHistory[]= new boolean[4];
     private MeasurementChecker measurementChecker;
     private NotificationHelper notificationHelper;
+    private boolean isRunning;
+
 
 
 
@@ -150,7 +152,6 @@ public class BackgroundWorker extends Service {
 
         }
 
-        android.util.Log.e("new alerts total:", toRemove.size()+"");
         // if there are not alert logs to save, save, then send notification about new alerts
         if(toRemove.size() > 0){
 
@@ -316,8 +317,10 @@ public class BackgroundWorker extends Service {
      */
     @Override
     public void onDestroy() {
-        super.onDestroy();
         android.util.Log.i("R",  "service done");
+        isRunning=false;
+        stopSelf();
+        super.onDestroy();
     }
 
 
@@ -335,10 +338,10 @@ public class BackgroundWorker extends Service {
 
         private WeakReference<BackgroundWorker> mService;
         private ServiceHandler handler;
-        private boolean isRunning;
 
         LooperThread(BackgroundWorker service, ServiceHandler handler) {
             mService = new WeakReference<BackgroundWorker>(service);
+
             this.handler = handler;
         }
 
@@ -402,6 +405,7 @@ public class BackgroundWorker extends Service {
             Looper.loop();
         }
     }
+
 
 
     /**
