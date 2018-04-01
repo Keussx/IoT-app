@@ -1,6 +1,7 @@
 package com.ksopha.thanetearth.fragment;
 
 
+import android.app.NotificationManager;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -8,6 +9,8 @@ import com.ksopha.thanetearth.ormObject.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.ksopha.thanetearth.R;
 import java.text.SimpleDateFormat;
@@ -19,6 +22,7 @@ import de.codecrafters.tableview.TableDataAdapter;
 import de.codecrafters.tableview.model.TableColumnWeightModel;
 import de.codecrafters.tableview.toolkit.SimpleTableHeaderAdapter;
 import io.realm.Realm;
+import io.realm.RealmResults;
 import io.realm.Sort;
 
 
@@ -61,8 +65,8 @@ public class AlertsFragment extends Fragment {
         tableView = (SortableTableView)  root.findViewById(R.id.table_alerts);
 
         TableColumnWeightModel columnModel = new TableColumnWeightModel(2);
-        columnModel.setColumnWeight(1, 2);
-        columnModel.setColumnWeight(1, 4);
+        columnModel.setColumnWeight(0, 2);
+        columnModel.setColumnWeight(1, 6);
         tableView.setColumnModel(columnModel);
 
         tableView.setHeaderAdapter(new SimpleTableHeaderAdapter(getActivity(), headers));
@@ -86,6 +90,25 @@ public class AlertsFragment extends Fragment {
         tableView.setDataAdapter(new LogTableDataAdapter(getActivity(), logs));
     }
 
+    public void setNewLogsAsRead(){
+        boolean updated = false;
+        realm.beginTransaction();
+        RealmResults<Log> logs = realm.where(Log.class).equalTo("viewed", true).findAll();
+
+        android.util.Log.e("R", logs.size()+"");
+
+        if(logs.size()>0) {
+            for (int i = logs.size() - 1; i >= 0; i--) {
+                logs.get(i).setViewed(false);
+            }
+            updated = true;
+        }
+        realm.commitTransaction();
+
+        if(updated)
+            refreshLogViews();
+    }
+
 
 
     /**
@@ -104,7 +127,7 @@ public class AlertsFragment extends Fragment {
 
             switch (columnIndex) {
                 case 0:
-                    renderedView = renderDate(0,log.getDate());
+                    renderedView = renderDate(0,log.getDate(), log.isViewed());
                     break;
                 case 1:
                     renderedView = renderMsg(1,log.getMsg());
@@ -124,11 +147,19 @@ public class AlertsFragment extends Fragment {
      * @param t title of view
      * @return view element
      */
-    private View renderDate(int index, long t){
+    private View renderDate(int index, long t, boolean newLog){
 
-        TextView textView = new TextView(getContext());
+        LinearLayout dateTextView = (LinearLayout) LayoutInflater.from(getActivity()).inflate(R.layout.dateview, null);
 
         String date = dateFormatter.format(new Date(t));
+
+        // if log is new show red alert image next to date
+        if(newLog)
+            ((ImageView)dateTextView.getChildAt(0)).setImageResource(R.drawable.alert);
+        else
+            ((ImageView)dateTextView.getChildAt(0)).setImageDrawable(null);
+
+        TextView textView = (TextView) dateTextView.getChildAt(1);
 
         textView.setLines(2);
         String lines[] = date.split("--");
@@ -139,7 +170,7 @@ public class AlertsFragment extends Fragment {
 
         textView.setPadding(20, 10, 20, 10);
         textView.setTextSize(14);
-        return textView;
+        return dateTextView;
     }
 
 
@@ -189,6 +220,11 @@ public class AlertsFragment extends Fragment {
         super.onResume();
 
         refreshLogViews();
+
+        // clear any notifications, since user already viewing logs
+        NotificationManager nMgr =
+                (NotificationManager) getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
+        nMgr.cancel(5);
     }
 
 }

@@ -78,7 +78,7 @@ public class NotificationHelper extends ContextWrapper{
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
 
         // show notification
-        notificationManager.notify((int)System.currentTimeMillis()/1000, mBuilder.build());
+        notificationManager.notify(5, mBuilder.build());
 
     }
 

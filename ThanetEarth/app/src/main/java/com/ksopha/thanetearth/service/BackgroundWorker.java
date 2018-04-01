@@ -199,7 +199,8 @@ public class BackgroundWorker extends Service {
 
                     if (state1 != null) {
                         Log log = new Log(dateUnix, "Greenhouse " + (i + 1) + ": " + sensorName +
-                                " sensor temperature is " + data.getTemperature() + " °C (" + state1 + ")");
+                                " sensor temperature is " + data.getTemperature() + " °C (" + state1 + ")",
+                                true);
                         if(checkIfCanNotifyLog(log)){
                             toRemove.add(log);
                         }
@@ -207,14 +208,16 @@ public class BackgroundWorker extends Service {
                     }
                     if (state2 != null) {
                         Log log = new Log(dateUnix, "Greenhouse " + (i + 1) + ": " + sensorName +
-                                " sensor soil moisture is " + data.getMoisture() + " % (" + state2 + ")");
+                                " sensor soil moisture is " + data.getMoisture() + " % (" + state2 + ")",
+                                true);
                         if(checkIfCanNotifyLog(log)){
                             toRemove.add(log);
                         }
                     }
                     if (state3 != null) {
                         Log log = new Log(dateUnix, "Greenhouse " + (i + 1) + ": " + sensorName +
-                                " sensor TDS(total dissolved solids) is " + data.getTds() + " ppm (" + state3 + ")");
+                                " sensor TDS(total dissolved solids) is " + data.getTds() + " ppm (" + state3 + ")",
+                                true);
                         if(checkIfCanNotifyLog(log)){
                             toRemove.add(log);
                         }
@@ -222,7 +225,8 @@ public class BackgroundWorker extends Service {
                     }
                     if (state4 != null) {
                         Log log = new Log(dateUnix, "Greenhouse " + (i + 1) + ": " + sensorName +
-                                " sensor LUX(light intensity) is " + data.getTds() + " lx (" + state4 + ")");
+                                " sensor LUX(light intensity) is " + data.getTds() + " lx (" + state4 + ")",
+                                true);
                         if(checkIfCanNotifyLog(log)){
                             toRemove.add(log);
                         }
@@ -230,7 +234,8 @@ public class BackgroundWorker extends Service {
                     }
                     if (state5 != null) {
                         Log log = new Log(dateUnix, "Greenhouse " + (i + 1) + ": " + sensorName +
-                                " sensor battery level is " + data.getTds() + " % (" + state5 + ")");
+                                " sensor battery level is " + data.getTds() + " % (" + state5 + ")",
+                                true);
                         if(checkIfCanNotifyLog(log)){
                             toRemove.add(log);
                         }

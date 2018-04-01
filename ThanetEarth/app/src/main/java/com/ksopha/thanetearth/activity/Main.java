@@ -24,6 +24,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
@@ -63,6 +64,7 @@ public class Main extends AppCompatActivity implements NavigationView.OnNavigati
     private IntentFilter intentFilter;
     private Runnable drawerClosedRun;
     private Handler navDrawerHandler;
+    private Button markAllasRead;
 
 
     @Override
@@ -78,6 +80,16 @@ public class Main extends AppCompatActivity implements NavigationView.OnNavigati
         if(toolbar != null){
             setSupportActionBar(toolbar);
         }
+
+        // set the mark as read button for alerts fragment
+        markAllasRead = findViewById(R.id.markasread);
+        markAllasRead.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                clearAlerts();
+            }
+        });
+
 
         // support status bar background for android versions 5.0+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -185,6 +197,14 @@ public class Main extends AppCompatActivity implements NavigationView.OnNavigati
      */
     private void switchFragment(String fragmentTag){
 
+        // set toolbar item visible or not
+        if(ALERTS_FRAG.equals(fragmentTag)){
+            markAllasRead.setVisibility(View.VISIBLE);
+        }
+        else{
+            markAllasRead.setVisibility(View.GONE);
+        }
+
         // if not viewing this fragment
         if(currentFragment!= fragmentTag){
 
@@ -251,6 +271,7 @@ public class Main extends AppCompatActivity implements NavigationView.OnNavigati
                 "Site Locations" : "";
 
         getSupportActionBar().setSubtitle(title);
+
     }
 
 
@@ -330,20 +351,17 @@ public class Main extends AppCompatActivity implements NavigationView.OnNavigati
         return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
     }
 
+    private void clearAlerts(){
+        if(currentFragment.equals(ALERTS_FRAG)){
+            alerts.setNewLogsAsRead();
+        }
+    }
+
 
     @Override
     public void onBackPressed() {
 
-        // close drawer if opened
-        if (navDrawer.isDrawerOpen(GravityCompat.START)) {
-            navDrawer.closeDrawer(GravityCompat.START);
-        }
-
-        //if startup fragment is shown, then finish Activity
-        if(currentFragment.equals(STARTUP_FRAG_TAG)){
-            // tell Android system activity is done, and can be closed
-            finish();
-        }
+        finish();
     }
 
 

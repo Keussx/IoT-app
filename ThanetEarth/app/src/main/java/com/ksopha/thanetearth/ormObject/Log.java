@@ -11,10 +11,12 @@ import io.realm.RealmObject;
 public class Log extends RealmObject {
     private long date;
     private String msg;
+    private boolean viewed;
 
-    public Log(long date, String msg) {
+    public Log(long date, String msg, boolean viewed) {
         this.date = date;
         this.msg = msg;
+        this.viewed = viewed;
     }
 
     public Log(){
@@ -35,5 +37,13 @@ public class Log extends RealmObject {
 
     public void setMsg(String msg) {
         this.msg = msg;
+    }
+
+    public boolean isViewed() {
+        return viewed;
+    }
+
+    public void setViewed(boolean viewed) {
+        this.viewed = viewed;
     }
 }

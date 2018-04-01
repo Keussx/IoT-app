@@ -20,6 +20,7 @@
     <string name="temp">Temperature</string>
     <string name="no_history">No history data</string>
     <string name="waiting_data">waiting for data</string>
+    <string name="markasread">Mark All As Read</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
