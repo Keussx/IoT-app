@@ -193,6 +193,7 @@ public class BatteryFragment extends Fragment {
 
 
 
+
     /**
      * start update of battery measurements
      */

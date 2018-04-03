@@ -21,7 +21,6 @@ import java.util.List;
 
 public class MapFragment extends Fragment implements OnMapReadyCallback {
 
-    private final static String HTTP_LINK = "http://shed.kent.ac.uk/sites";
     private final String MAP_BUNDLE_KEY = "MapV";
     private SitesLocator locationUpdater;
     private MapView mapView;
@@ -87,7 +86,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         mapView.onCreate(mapViewBundle);
 
         if(locationUpdater == null){
-            locationUpdater = new SitesLocator(HTTP_LINK, getActivity());
+            locationUpdater = new SitesLocator(getActivity());
         }
 
         return root;

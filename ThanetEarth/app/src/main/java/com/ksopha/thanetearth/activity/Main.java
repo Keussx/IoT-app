@@ -36,7 +36,6 @@ import com.ksopha.thanetearth.fragment.BasicSiteFragment;
 import com.ksopha.thanetearth.fragment.BatteryFragment;
 import com.ksopha.thanetearth.fragment.MapFragment;
 import com.ksopha.thanetearth.fragment.GreenhouseFragment;
-import com.ksopha.thanetearth.fragment.StartupFragment;
 import com.ksopha.thanetearth.service.BackgroundWorker;
 
 
@@ -56,7 +55,6 @@ public class Main extends AppCompatActivity implements NavigationView.OnNavigati
     private DrawerLayout navDrawer;
     private String currentFragment;
     private FragmentManager fragManager;
-    private StartupFragment startupFragment;
     private MapFragment mapViewFragment;
     private GreenhouseFragment greenhouse1, greenhouse2, greenhouse3;
     private BasicSiteFragment outside;
@@ -156,7 +154,6 @@ public class Main extends AppCompatActivity implements NavigationView.OnNavigati
      */
     public void findOrCreateFragments(){
         // find fragments
-        startupFragment = (StartupFragment) fragManager.findFragmentByTag(STARTUP_FRAG_TAG);
         mapViewFragment = (MapFragment) fragManager.findFragmentByTag(MAPVIEW_FRAG_TAG);
         greenhouse1 = (GreenhouseFragment) fragManager.findFragmentByTag(GRN_HOUSE1_TAG);
         greenhouse2 = (GreenhouseFragment) fragManager.findFragmentByTag(GRN_HOUSE2_TAG);
@@ -166,9 +163,6 @@ public class Main extends AppCompatActivity implements NavigationView.OnNavigati
         alerts = (AlertsFragment) fragManager.findFragmentByTag(ALERTS_FRAG);
 
         // instantiate is null
-        if(startupFragment == null){
-            startupFragment = new StartupFragment();
-        }
         if(mapViewFragment == null){
             mapViewFragment = new MapFragment();
         }
@@ -214,11 +208,6 @@ public class Main extends AppCompatActivity implements NavigationView.OnNavigati
             FragmentTransaction fragmentTransaction = fragManager.beginTransaction();
 
             switch (fragmentTag){
-
-                case STARTUP_FRAG_TAG:
-                    fragmentTransaction.replace(R.id.fragment_holder, startupFragment, STARTUP_FRAG_TAG);
-                    currentFragment = STARTUP_FRAG_TAG;
-                    break;
 
                 case GRN_HOUSE1_TAG:
                     fragmentTransaction.replace(R.id.fragment_holder, greenhouse1, GRN_HOUSE1_TAG);

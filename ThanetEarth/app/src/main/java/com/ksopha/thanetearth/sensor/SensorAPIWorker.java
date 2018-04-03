@@ -1,12 +1,19 @@
 package com.ksopha.thanetearth.sensor;
 
-import com.ksopha.thanetearth.http.HTTPClient;
 import com.ksopha.thanetearth.ormObject.Sensor;
 import com.ksopha.thanetearth.ormObject.SensorBasicData;
 import com.ksopha.thanetearth.ormObject.SensorHistory;
-
+import com.ksopha.thanetearth.retrofit.History;
+import com.ksopha.thanetearth.retrofit.SensorMeasure;
+import com.ksopha.thanetearth.retrofit.RInterface;
+import com.ksopha.thanetearth.retrofit.Site;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
+
 
 /**
  * Class for doing requests to the sensors API
@@ -16,16 +23,22 @@ import java.util.List;
 public class SensorAPIWorker {
 
     private static final String BASE_URL="http://shed.kent.ac.uk/";
-    private HTTPClient httpClient;
-    private SensorJsonDataParser sensorJsonDataParser;
+    private SensorDataParser sensorDataParser;
+    private Retrofit retrofit;
+    private RInterface client;
 
 
     /**
      * Constuctor
      */
     public SensorAPIWorker(){
-        httpClient = new HTTPClient(5000,5000);
-        sensorJsonDataParser = new SensorJsonDataParser();
+        sensorDataParser = new SensorDataParser();
+        retrofit = new Retrofit.Builder()
+                .baseUrl("http://shed.kent.ac.uk/")
+                .addConverterFactory(JacksonConverterFactory.create())
+                .build();
+
+        client =  retrofit.create(RInterface.class);
     }
 
 
@@ -70,10 +83,13 @@ public class SensorAPIWorker {
     public List<Sensor> getSensors(){
 
         // get device Ids here
-        String response = httpClient.getHttpResponseAsString(BASE_URL + "sites");
-
-        return sensorJsonDataParser.getSensorsFromJson(response);
-
+        Response<List<Site>> sites = null;
+        try {
+            sites = client.sites().execute();
+            return sensorDataParser.getSensorsFromJson(sites);
+        } catch (IOException e) {
+            return null;
+        }
     }
 
 
@@ -88,36 +104,34 @@ public class SensorAPIWorker {
         String deviceID = sensor.getId();
 
         // get all device data here
+        try {
 
-        String tdsResponse = httpClient.getHttpResponseAsString(BASE_URL +
-                "device/" + deviceID + "/tds");
+            Response<SensorMeasure> tds = client.sensorMeasure(deviceID, "tds").execute();
 
-        String lightResponse = httpClient.getHttpResponseAsString(BASE_URL +
-                "device/" + deviceID + "/light");
+            Response<SensorMeasure> light = client.sensorMeasure(deviceID, "light").execute();
 
-        String tempResponse = httpClient.getHttpResponseAsString(BASE_URL +
-                "device/" + deviceID + "/temperature");
+            Response<SensorMeasure> temp = client.sensorMeasure(deviceID, "temperature").execute();
 
-        String moistureResponse = httpClient.getHttpResponseAsString(BASE_URL +
-                "device/" + deviceID + "/moisture");
+            Response<SensorMeasure> moisture = client.sensorMeasure(deviceID, "moisture").execute();
 
-        String batteryResponse = httpClient.getHttpResponseAsString(BASE_URL +
-                "device/" + deviceID + "/battery");
+            Response<SensorMeasure> battery = client.sensorMeasure(deviceID, "battery").execute();
 
-        return sensorJsonDataParser.getSensorBasicData(sensor, tdsResponse,
-                lightResponse, tempResponse, moistureResponse, batteryResponse);
+            return sensorDataParser.getSensorBasicData(sensor, tds, light, temp, moisture, battery);
+
+        }catch(Exception e){
+            return null;
+        }
     }
 
 
     /**
      * Get history data for a list of sensors, restrcited by site id and measurement type
-     * @param url_extra url to get history data
      * @param type type of measurement
      * @param siteId id i=of site
      * @param sensors list of sensors to get history data
      * @return sensor data
      */
-    public List<SensorHistory>  getGreenhouseHistoryData(String url_extra, String type, String siteId, List<Sensor> sensors){
+    public List<SensorHistory>  getGreenhouseHistoryData(String type, String siteId, List<Sensor> sensors){
 
         // will hold temp sensor history for each sensor
         List<SensorHistory> data = new ArrayList<>();
@@ -130,14 +144,16 @@ public class SensorAPIWorker {
 
                 if(siteId.equals(sensor.getSite())){
 
-                    String response = httpClient.getHttpResponseAsString(BASE_URL +
-                            "device/" + sensor.getId() + url_extra);
+                    try {
+                        Response<List<History>> response = client.sensorMeasureHistory(sensor.getId(), type).execute();
 
-                    List<SensorHistory> entries =
-                            sensorJsonDataParser.getSensorSensorHistoryListFromJson(sensor, type, response);
+                        List<SensorHistory> entries =
+                                sensorDataParser.getSensorSensorHistoryListFromJson(sensor, type, response);
 
-                    if(entries!=null && entries.size()>0)
-                        data.addAll(entries);
+                        if (entries != null && entries.size() > 0)
+                            data.addAll(entries);
+                    }catch(Exception t){
+                    }
                 }
 
             }

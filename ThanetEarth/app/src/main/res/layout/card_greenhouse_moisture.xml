@@ -44,6 +44,22 @@
 
 
 
+        <TextView
+            android:id="@+id/current"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:padding="3dp"
+            android:text="Current Measures"
+            android:textAlignment="center"
+            android:textColor="@android:color/white"
+            android:textSize="14sp"
+            android:layout_marginTop="10dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+
+
         <com.github.lzyzsd.circleprogress.ArcProgress
             android:id="@+id/average_moisture"
             custom:arc_finished_color="@color/bright_green"
@@ -53,101 +69,89 @@
             android:layout_height="110dp"
             custom:arc_progress="0"
             custom:arc_text_size="25dp"
+            android:layout_marginTop="15dp"
             custom:arc_text_color="@android:color/white"
             custom:arc_bottom_text="AVERAGE"
-            custom:arc_suffix_text=""/>
+            custom:arc_suffix_text=""
+            app:layout_constraintTop_toBottomOf="@+id/current"/>
 
         <LinearLayout
             android:id="@+id/linearLayout"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_width="240dp"
+            android:layout_height="187dp"
             android:layout_marginBottom="8dp"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="18dp"
             android:orientation="vertical"
             android:weightSum="1"
             app:layout_constraintBottom_toBottomOf="@+id/average_moisture"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/average_moisture"
             app:layout_constraintTop_toTopOf="@+id/average_moisture">
 
 
-            <TextView
-                android:id="@+id/sensor1_val"
+            <com.github.mikephil.charting.charts.BarChart
+                android:id="@+id/all_sensors_current"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="5dp"
-                android:layout_weight="1"
-                android:text="@string/sensor"
-                android:textAlignment="textEnd"
+                android:layout_height="140dp"
                 android:layout_gravity="end"
-                android:paddingRight="20dp"
-                android:textColor="@android:color/white" />
-
-            <TextView
-                android:id="@+id/sensor2_val"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="5dp"
-                android:layout_weight="1"
-                android:text="@string/sensor"
-                android:textAlignment="textEnd"
-                android:layout_gravity="end"
-                android:paddingRight="20dp"
-                android:textColor="@android:color/white" />
-
-            <TextView
-                android:id="@+id/sensor3_val"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="5dp"
-                android:layout_weight="1"
-                android:text="@string/sensor"
-                android:textAlignment="textEnd"
-                android:layout_gravity="end"
-                android:paddingRight="20dp"
-                android:textColor="@android:color/white" />
-
-            <TextView
-                android:id="@+id/sensor4_val"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="5dp"
-                android:layout_weight="1"
-                android:text="@string/sensor"
-                android:textAlignment="textEnd"
-                android:layout_gravity="end"
-                android:paddingRight="20dp"
-                android:textColor="@android:color/white" />
+                android:layout_marginLeft="40dp"
+                android:layout_marginRight="10dp"
+                android:layout_marginTop="17dp"
+                app:layout_constraintEnd_toEndOf="parent"/>
 
         </LinearLayout>
 
 
     </android.support.constraint.ConstraintLayout>
 
-        <com.github.mikephil.charting.charts.LineChart
-            android:id="@+id/chart"
-            android:layout_width="match_parent"
-            android:layout_height="400dp"
-            android:layout_marginTop="35dp"
-            android:visibility="gone"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/first_row" />
-
-        <TextView
-            android:id="@+id/chart_unavailable2"
-            android:layout_width="match_parent"
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="@string/waiting_data"
-            android:textAlignment="center"
-            android:visibility="visible"
-            android:freezesText="true"
-            android:textSize="14dp"
-            android:padding="20dp"
-            android:textColor="@color/grey"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/first_row"/>
+            app:layout_constraintTop_toBottomOf="@+id/first_row" >
+
+            <TextView
+                android:id="@+id/history"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="3dp"
+                android:text="History(average measures)"
+                android:textAlignment="center"
+                android:textColor="@android:color/white"
+                android:textSize="14sp"
+                android:layout_marginTop="30dp"
+                />
+
+            <com.github.mikephil.charting.charts.LineChart
+                android:id="@+id/chart"
+                android:layout_width="match_parent"
+                android:layout_height="400dp"
+                android:layout_marginTop="35dp"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/chart_unavailable2"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:text="@string/waiting_data"
+                android:textAlignment="center"
+                android:visibility="visible"
+                android:freezesText="true"
+                android:textSize="14sp"
+                android:paddingTop="20dp"
+                android:layout_marginBottom="15dp"
+                android:textColor="@color/grey" />
+
+            <include
+                android:id="@+id/legend"
+                layout="@layout/legend"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="0dp"
+                android:layout_marginBottom="15dp"/>
+
+        </LinearLayout>
 
 
     </android.support.constraint.ConstraintLayout>

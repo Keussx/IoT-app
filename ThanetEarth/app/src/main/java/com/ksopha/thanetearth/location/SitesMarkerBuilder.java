@@ -8,6 +8,8 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.ksopha.thanetearth.R;
+import com.ksopha.thanetearth.retrofit.Site;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -15,6 +17,8 @@ import org.json.JSONObject;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
+
+import retrofit2.Response;
 
 
 /**
@@ -29,39 +33,22 @@ public class SitesMarkerBuilder {
 
     /**
      * Takes in a json string, parses it and returns list of MarkerOptions for several markers
-     * @param json string to get MarkerOptions from
      * @return list of MarkerOptions
      */
-    public List<MarkerOptions> jsonToMarkerOptions(String json, SitesLocator reference){
+    public List<MarkerOptions> jsonToMarkerOptions(Response<List<Site>> sites, SitesLocator reference){
 
         sitesLocatorWeakReference = new WeakReference<SitesLocator>(reference);
 
         List<MarkerOptions> markers = new ArrayList<>();
 
-        if(json != null && json.length()>0) {
+        if(sites.isSuccessful()) {
 
-            // try parsing to objects
-            try {
-                //get the root json element as array
-                JSONArray jsonArray = new JSONArray(json);
-
-                //iterate through the array, and get required data of each greenhouse
-                for (int i = 0; i < jsonArray.length(); i++) {
-                   JSONObject object = jsonArray.getJSONObject(i);
-
-                   if(object.has("name") && object.has("lon") && object.has("lat"))
-                   {
+               for(Site site: sites.body()){
                        markers.add(
-                               getMarkerOptions(object.getString("name"),
-                                       object.getString("id"),
-                                       Float.valueOf(object.getString("lat")),
-                                       Float.valueOf(object.getString("lon"))));
-                   }
+                               getMarkerOptions(site.getName(), site.getId(), site.getLat(), site.getLon()));
+
                 }
 
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
         }
 
         return markers;

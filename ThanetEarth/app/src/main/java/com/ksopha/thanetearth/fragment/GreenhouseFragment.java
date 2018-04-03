@@ -6,17 +6,21 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.CardView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.github.lzyzsd.circleprogress.ArcProgress;
+import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.AxisBase;
 import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
+import com.github.mikephil.charting.data.BarData;
+import com.github.mikephil.charting.data.BarDataSet;
+import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
@@ -49,7 +53,8 @@ public class GreenhouseFragment extends Fragment {
 
     private CardView [] cards;
     private ArcProgress[] averageArc;
-    private LineChart [] charts;
+    private LineChart [] historyCharts;
+    private BarChart[] currentMeasureCharts;
     private String [] types = {"temperature", "moisture", "tds", "light"};
     private String[] units = {"°C", "%", "ppm", "lx"};
     private List<String> sites = new ArrayList<>();
@@ -60,6 +65,8 @@ public class GreenhouseFragment extends Fragment {
     private String fragmentID;
     private SimpleDateFormat simpleFormatter;
     private Realm realm;
+    private int[] colors;
+    private float scale;
 
 
     /**
@@ -97,6 +104,14 @@ public class GreenhouseFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        scale = getContext().getResources().getDisplayMetrics().density;
+
+        colors = new int[4];
+        colors[0] = Color.rgb(17, 167, 170);
+        colors[1] = Color.rgb(198, 81, 230);
+        colors[2] = Color.rgb(230, 202, 81);
+        colors[3] = Color.rgb(230, 76, 102);
+
 
         realm = Realm.getDefaultInstance();
 
@@ -109,7 +124,8 @@ public class GreenhouseFragment extends Fragment {
 
         cards = new CardView[4];
         averageArc = new ArcProgress[4];
-        charts = new LineChart[4];
+        historyCharts = new LineChart[4];
+        currentMeasureCharts = new BarChart[4];
 
         // Inflate the layout for this fragment
         View root =  inflater.inflate(R.layout.fragment_greenhouse, container, false);
@@ -135,13 +151,54 @@ public class GreenhouseFragment extends Fragment {
         unavailableViews[3] = cards[3].findViewById(R.id.chart_unavailable4);
 
 
-        charts[0] = setSectionLineChart("Temperature",  cards[0]);
-        charts[1] = setSectionLineChart("Soil Moisture",  cards[1]);
-        charts[2] = setSectionLineChart("TDS(Total Dissolved Solids)",  cards[2]);
-        charts[3] = setSectionLineChart("LUX(Light Intensity)",  cards[3]);
+        currentMeasureCharts[0] = setBarChat(cards[0]);
+        currentMeasureCharts[1] = setBarChat(cards[1]);
+        currentMeasureCharts[2] = setBarChat(cards[2]);
+        currentMeasureCharts[3] = setBarChat(cards[3]);
+
+        historyCharts[0] = setSectionLineChart("Temperature",  cards[0]);
+        historyCharts[1] = setSectionLineChart("Soil Moisture",  cards[1]);
+        historyCharts[2] = setSectionLineChart("TDS(Total Dissolved Solids)",  cards[2]);
+        historyCharts[3] = setSectionLineChart("LUX(Light Intensity)",  cards[3]);
+
 
         return root;
     }
+
+    /**
+     * Set section heading and create a BarChart
+     * @param root  a view to find chart
+     * @return chart instance
+     */
+    private BarChart setBarChat(View root){
+
+        BarChart chart = (BarChart) root.findViewById(R.id.all_sensors_current);
+        chart.setDrawGridBackground(false);
+        chart.getDescription().setEnabled(false);
+        chart.setDrawBorders(false);
+        chart.getAxisLeft().setEnabled(false);
+        chart.getAxisRight().setDrawAxisLine(true);
+        chart.getAxisRight().setDrawGridLines(true);
+        chart.getAxisRight().setYOffset(-2);
+        chart.getXAxis().setYOffset(-5);
+        chart.getXAxis().setDrawAxisLine(false);
+        chart.getXAxis().setDrawLabels(false);
+        chart.getXAxis().setDrawGridLines(false);
+        chart.getAxisRight().setGridColor(Color.rgb(82,92,104));
+        chart.setDragEnabled(true);
+        chart.setScaleEnabled(true);
+        chart.getLegend().setEnabled(false);
+        chart.setExtraBottomOffset(5f);
+        chart.getAxisRight().setTextColor(Color.rgb(255,255,255));
+        chart.getAxisRight().setTextSize(12f);
+        chart.getXAxis().setTextColor(Color.rgb(255,255,255));
+
+        return chart;
+    }
+
+
+
+
 
 
 
@@ -159,7 +216,6 @@ public class GreenhouseFragment extends Fragment {
         chart.setDrawGridBackground(false);
         chart.getDescription().setEnabled(false);
         chart.setDrawBorders(false);
-
         chart.getAxisLeft().setEnabled(false);
         chart.getAxisRight().setDrawAxisLine(false);
         chart.getAxisRight().setDrawGridLines(false);
@@ -168,7 +224,7 @@ public class GreenhouseFragment extends Fragment {
         chart.getXAxis().setGridColor(Color.rgb(82,92,104));
         chart.setDragEnabled(true);
         chart.setScaleEnabled(true);
-        chart.getLegend().setTextSize(13f);
+        chart.getLegend().setEnabled(false);
         chart.getXAxis().setTextSize(12f);
         chart.getAxisRight().setTextColor(Color.rgb(255,255,255));
         chart.getAxisRight().setTextSize(12f);
@@ -214,17 +270,28 @@ public class GreenhouseFragment extends Fragment {
             String val3 = sensorValGetter(data[2], i);
             String val4 = sensorValGetter(data[3], i);
 
-            // update each sensor current temperature element
-            ((TextView) cards[i].findViewById(R.id.sensor1_val))
-                    .setText(sensors.get(0).getName() + ": " + val1 + " " + units[i]);
-            ((TextView) cards[i].findViewById(R.id.sensor2_val))
-                    .setText(sensors.get(1).getName() + ": " + val2 + " " + units[i]);
-            ((TextView) cards[i].findViewById(R.id.sensor3_val))
-                    .setText(sensors.get(2).getName() + ": " + val3 + " " + units[i]);
-            ((TextView) cards[i].findViewById(R.id.sensor4_val))
-                    .setText(sensors.get(3).getName() + ": " + val4 + " " + units[i]);
+            // set current sensors measure
+            List<BarEntry> entries = new ArrayList<>();
+            entries.add(new BarEntry(0f, Integer.parseInt(val1)));
+            entries.add(new BarEntry(1f, Integer.parseInt(val2)));
+            entries.add(new BarEntry(2f, Integer.parseInt(val3)));
+            entries.add(new BarEntry(3f, Integer.parseInt(val4)));
+            BarDataSet set = new BarDataSet(entries, "BarDataSet");
+            set.setColors(colors);
+            BarData measures = new BarData(set);
+            measures.setDrawValues(false);
 
+            YAxis rightAxis = currentMeasureCharts[i].getAxisRight();
+            rightAxis.setPosition(YAxis.YAxisLabelPosition.OUTSIDE_CHART);
+            rightAxis.setGranularity(1f);
+            rightAxis.setValueFormatter(new LabelFormatter(i, units));
+            rightAxis.setGranularityEnabled(true);
+            rightAxis.setTextSize(13f);
 
+            currentMeasureCharts[i].setData(measures);
+            currentMeasureCharts[i].invalidate();
+
+            // set average
             averageArc[i].setSuffixText(units[i]);
             averageArc[i].setSuffixTextSize(suffixSize[i]);
             averageArc[i].setMax(maxUnits[i]);
@@ -268,7 +335,7 @@ public class GreenhouseFragment extends Fragment {
     /**
      * update the history for a chart
      * @param i  index of card
-     * @param sensors slist of sensors
+     * @param sensors list of sensors
      */
     private void updateSingleChartHistory(int i, List<Sensor> sensors){
 
@@ -287,21 +354,17 @@ public class GreenhouseFragment extends Fragment {
                     .equalTo("type", types[i]).sort("date", Sort.DESCENDING).findAll();
 
             // if there is data available that was stored
-            if (sensor1Data.size() > 0 && sensor2Data.size() > 0 && sensor3Data.size() > 0 && sensor4Data.size() > 0) {
+            if (sensor1Data.size() > 1 && sensor2Data.size() > 1 && sensor3Data.size() > 1 && sensor4Data.size() > 1) {
 
-                charts[i].setVisibility(View.VISIBLE);
+
+                historyCharts[i].setVisibility(View.VISIBLE);
                 unavailableViews[i].setVisibility(View.GONE);
 
                 String[] xAxisGroups = new String[sensor1Data.size()];
 
                 List<ILineDataSet> dataSets = new ArrayList<>();
 
-                int[] colors = {
-                        Color.rgb(17, 167, 170),
-                        Color.rgb(198, 81, 230),
-                        Color.rgb(230, 202, 81),
-                        Color.rgb(230, 76, 102)
-                };
+
 
                 // save update dates for sensors
                 for (int h = 0; h < xAxisGroups.length; h++) {
@@ -316,7 +379,7 @@ public class GreenhouseFragment extends Fragment {
                 dataSets.add(toLineDataSet(sensors.get(3).getName(), colors[3], sensor4Data));
 
                 // setup legend
-                Legend legend = charts[i].getLegend();
+                Legend legend = historyCharts[i].getLegend();
                 legend.setTextSize(14f);
                 legend.setHorizontalAlignment(Legend.LegendHorizontalAlignment.CENTER);
                 legend.setXEntrySpace(25f);
@@ -324,13 +387,13 @@ public class GreenhouseFragment extends Fragment {
 
                 LineData data = new LineData(dataSets);
 
-                XAxis xAxis = charts[i].getXAxis();
+                XAxis xAxis = historyCharts[i].getXAxis();
                 xAxis.setGranularity(1.0f);
                 xAxis.setValueFormatter(new DateXAxisLabelFormatter(xAxisGroups));
 
-                charts[i].setData(data);
-                charts[i].setVisibleXRangeMaximum(2.435f);
-                charts[i].invalidate();
+                historyCharts[i].setData(data);
+                historyCharts[i].setVisibleXRangeMaximum(2.435f);
+                historyCharts[i].invalidate();
 
             }
 
@@ -338,14 +401,14 @@ public class GreenhouseFragment extends Fragment {
             // if there are no data available, hide graph, show message
             else if(!BackgroundWorker.updatedSiteHistory[sites.indexOf(fragmentID)]) {
 
-                charts[i].setVisibility(View.GONE);
+                historyCharts[i].setVisibility(View.GONE);
                 unavailableViews[i].setVisibility(View.VISIBLE);
+                unavailableViews[i].setText(R.string.no_history);
 
             }
             else{
-                charts[i].setVisibility(View.GONE);
+                historyCharts[i].setVisibility(View.GONE);
                 unavailableViews[i].setVisibility(View.VISIBLE);
-
                 unavailableViews[i].setText(R.string.no_history);
 
             }
@@ -396,7 +459,7 @@ public class GreenhouseFragment extends Fragment {
 
 
     /**
-     * MPAndroid charts allow multiline X axis labels
+     * MPAndroid historyCharts allow multiline X axis labels
      * reference: https://stackoverflow.com/questions/32509174/in-mpandroidchart-library-how-to-wrap-x-axis-labels-to-two-lines-when-long
      */
     public class CustomXAxisRenderer extends XAxisRenderer {
@@ -408,8 +471,10 @@ public class GreenhouseFragment extends Fragment {
         protected void drawLabel(Canvas c, String formattedLabel, float x, float y, MPPointF anchor, float angleDegrees) {
             String line[] = formattedLabel.split("--");
 
-            if(line[1]==null)
+            if(line.length==1) {
+                line = new String[2];
                 line[0] = line[1] = "";
+            }
 
             Utils.drawXAxisValue(c, line[0], x+35, y, mAxisLabelPaint, anchor, angleDegrees);
             Utils.drawXAxisValue(c, line[1], x + mAxisLabelPaint.getTextSize()+2,
@@ -457,6 +522,26 @@ public class GreenhouseFragment extends Fragment {
 
         updateCurrentGreenhouseData();;
         updateHistoryData();
+    }
+
+
+    /**
+     * Class for creating custom  value formatter
+     */
+
+    public class LabelFormatter implements IAxisValueFormatter {
+        private final String[] units;
+        private int index;
+
+        public LabelFormatter(int index, String[] units) {
+            this.units = units;
+            this.index = index;
+        }
+
+        @Override
+        public String getFormattedValue(float value, AxisBase axis) {
+            return (int) value +  " " + units[index];
+        }
     }
 
 }

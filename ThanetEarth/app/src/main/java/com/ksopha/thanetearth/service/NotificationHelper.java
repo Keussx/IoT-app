@@ -6,12 +6,9 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.RequiresApi;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
-
 import com.ksopha.thanetearth.R;
 import com.ksopha.thanetearth.activity.Main;
 
@@ -36,9 +33,7 @@ public class NotificationHelper extends ContextWrapper{
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
 
-            NotificationChannel channel = null;
-
-            channel = new NotificationChannel(id, name, NotificationManager.IMPORTANCE_DEFAULT);
+            NotificationChannel channel =  new NotificationChannel(id, name, NotificationManager.IMPORTANCE_DEFAULT);
 
             channel.enableLights(true);
             channel.enableVibration(true);

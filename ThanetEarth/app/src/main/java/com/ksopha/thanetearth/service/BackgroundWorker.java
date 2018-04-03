@@ -14,6 +14,8 @@ import com.ksopha.thanetearth.ormObject.Sensor;
 import com.ksopha.thanetearth.ormObject.SensorBasicData;
 import com.ksopha.thanetearth.sensor.SensorAPIWorker;
 import com.ksopha.thanetearth.ormObject.SensorHistory;
+import com.ksopha.thanetearth.weather.WeatherApi;
+
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +35,7 @@ public class BackgroundWorker extends Service {
     private long startTime;
     public static final String ACTION = "com.ksopha.thanetearth.service.BackgroundWorker";
     private SensorAPIWorker sensorAPIWorker;
+    private WeatherApi weatherWorker;
     private List<Sensor> sensors;
     private ServiceHandler serviceHandler;
     private static LooperThread thread;
@@ -62,6 +65,8 @@ public class BackgroundWorker extends Service {
         startTime = System.currentTimeMillis();
 
         sensorAPIWorker = new SensorAPIWorker();
+
+        weatherWorker = new WeatherApi();
 
         serviceHandler = new ServiceHandler();
 
@@ -293,7 +298,7 @@ public class BackgroundWorker extends Service {
         for(String type: types){
 
             List<SensorHistory> siteData = sensorAPIWorker.getGreenhouseHistoryData(
-                    "/"+type+"/hour", type, site , sensors);
+                    type, site , sensors);
 
             if(siteData==null){
                 pulledHistory= false;
@@ -358,6 +363,8 @@ public class BackgroundWorker extends Service {
                 realm.commitTransaction();
                 realm.close();
                 checkAndSaveBasicSiteData(handler);
+
+                //weatherWorker.getAlerts();
 
 
                 // if the startTime is larger in seconds than interval to get history data

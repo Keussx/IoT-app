@@ -6,10 +6,16 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.ksopha.thanetearth.http.HTTPClient;
+import com.ksopha.thanetearth.retrofit.RInterface;
+import com.ksopha.thanetearth.retrofit.Site;
+
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
+
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 /**
  * This class performs location updates by finding location of a device and
@@ -26,28 +32,35 @@ public class SitesLocator {
     private ArrayList<MarkerOptions> markers;
     private WeakReference<Context> parent;
     private String sites_url;
-    private HTTPClient webClient;
     private SitesMarkerBuilder markerBuilder;
     private LatLngBounds.Builder mapBoundsBuilder;
     private GoogleMap map;
     private boolean busy;
     private boolean toMoveCamAgain;
+    private Retrofit retrofit;
+    private RInterface client;
 
 
     /**
      * Constructor
-     * @param sites_url a url to fetch json data of site locations
      * @param parent a Context reference
      */
-    public SitesLocator(String sites_url, Context parent){
+    public SitesLocator(Context parent){
 
         this.sites_url = sites_url;
         this.parent = new WeakReference<>(parent);
         markerBuilder = new SitesMarkerBuilder();
         // a connect and read timeout of 5 seconds is used for webClient
-        webClient = new HTTPClient(5000, 5000);
+
         markers = new ArrayList<>();
         mapBoundsBuilder = new LatLngBounds.Builder();
+
+        retrofit = new Retrofit.Builder()
+                .baseUrl("http://shed.kent.ac.uk/")
+                .addConverterFactory(JacksonConverterFactory.create())
+                .build();
+
+        client =  retrofit.create(RInterface.class);
     }
 
 
@@ -146,12 +159,14 @@ public class SitesLocator {
             // get parent reference
             SitesLocator updater = parentReference.get();
 
-            // run on background thread
-            String response = updater.webClient
-                    .getHttpResponseAsString(parentReference.get().sites_url);
+            try {
+                // run on background thread
+                Response<List<Site>> sites = updater.client.sites().execute();
 
-            return updater.markerBuilder
-                    .jsonToMarkerOptions(response, parentReference.get());
+                return updater.markerBuilder.jsonToMarkerOptions(sites, parentReference.get());
+            }catch(Exception e){
+                return null;
+            }
         }
 
         @Override
