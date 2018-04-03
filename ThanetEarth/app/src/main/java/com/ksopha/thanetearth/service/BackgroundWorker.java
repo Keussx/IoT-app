@@ -30,7 +30,7 @@ import io.realm.Sort;
 
 public class BackgroundWorker extends Service {
 
-    private static final int BASIC_UPDATE_SECONDDS_INTERVAL = 60 * 1; // 10 minutes
+    private static final int BASIC_UPDATE_SECONDDS_INTERVAL = 60 * 10; // 10 minutes
     private static final int HISTORY_UPDATE_SECONDDS_INTERVAL = 60 * 60; // 1 hour
     private long startTime;
     public static final String ACTION = "com.ksopha.thanetearth.service.BackgroundWorker";
